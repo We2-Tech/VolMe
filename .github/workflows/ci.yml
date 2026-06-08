@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ── Configurable variables ─────────────────────────────────────────────────────
+# NODE_VERSION  — Node.js version used across all jobs
+# REGISTRY      — container registry (ghcr.io · docker.io · <AWS ECR URL> …)
+# IMAGE_NAME    — defaults to ghcr.io/<owner>/<repo>; override if needed
+env:
+  NODE_VERSION: '22'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# Cancel in-progress runs on the same branch when a new push arrives
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Stage 0: Security scan (GitHub-hosted) ───────────────────────────────────
+  semgrep:
+    name: Semgrep Security Scan
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan
+        run: semgrep ci --config=auto
+
+  # ── Stage 1: Code quality ────────────────────────────────────────────────────
+  quality:
+    name: Quality (Lint · Format · Type-check)
+    needs: semgrep
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run type-check
+
+  # ── Stage 2: Tests ───────────────────────────────────────────────────────────
+  test:
+    name: Test
+    needs: quality
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run test:run
+
+  # ── Stage 3: Production build ────────────────────────────────────────────────
+  build:
+    name: Build
+    needs: test
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          # standalone/ is the deployable Node.js bundle; static/ holds hashed assets
+          path: |
+            .next/standalone/
+            .next/static/
+          retention-days: 7
+
+  # ── Stage 4: Docker build & push to GHCR ────────────────────────────────────
+  # Disabled by default. To enable:
+  #   Go to Settings → Variables → Actions → New variable
+  #   Name: ENABLE_DOCKER_PUSH  Value: true
+  docker:
+    name: Docker · Push to GHCR
+    needs: build
+    if: vars.ENABLE_DOCKER_PUSH == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, ARM64]
+    permissions:
+      contents: read
+      packages: write # required to push to GHCR
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to ${{ env.REGISTRY }}
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

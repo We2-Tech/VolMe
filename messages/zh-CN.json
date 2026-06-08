@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "appTitle": "Next.js + MUI 模板"
+  },
+  "home": {
+    "title": "Material UI 起始模板",
+    "subtitle": "App Router · React 编译器 · 明暗双色主题。以下展示了所有已安装的 MUI X 组件。",
+    "dataGrid": "数据网格",
+    "treeView": "树形视图",
+    "lineChart": "折线图",
+    "barChart": "柱状图",
+    "datePickers": "日期选择",
+    "selectedDate": "已选：{date}",
+    "zodDemo": "数据校验（Zod）",
+    "zodEmail": "邮箱",
+    "zodPassword": "密码",
+    "zodSubmit": "校验",
+    "zodSuccess": "✓ 校验通过",
+    "zodReset": "重置"
+  },
+  "notFound": {
+    "title": "页面不存在",
+    "description": "您访问的页面不存在或已被移动。",
+    "backHome": "返回首页"
+  }
+}

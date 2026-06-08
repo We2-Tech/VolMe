@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "appTitle": "Next.js + MUI Template"
+  },
+  "home": {
+    "title": "Material UI starter",
+    "subtitle": "App Router · React Compiler · light & dark color schemes. Every installed MUI X package is wired up below.",
+    "dataGrid": "Data Grid",
+    "treeView": "Tree View",
+    "lineChart": "Line Chart",
+    "barChart": "Bar Chart",
+    "datePickers": "Date Pickers",
+    "selectedDate": "Selected: {date}",
+    "zodDemo": "Schema Validation (Zod)",
+    "zodEmail": "Email",
+    "zodPassword": "Password",
+    "zodSubmit": "Validate",
+    "zodSuccess": "✓ Validation passed",
+    "zodReset": "Reset"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "backHome": "Back to Home"
+  }
+}

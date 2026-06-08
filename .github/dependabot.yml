@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 10
+    groups:
+      mui:
+        patterns:
+          - '@mui/*'
+          - '@emotion/*'
+      nextjs:
+        patterns:
+          - 'next'
+          - 'next-intl'
+      testing:
+        patterns:
+          - 'vitest'
+          - '@vitejs/*'
+          - '@testing-library/*'
+      typescript:
+        patterns:
+          - 'typescript'
+          - '@types/*'
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Shanghai

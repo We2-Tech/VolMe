@@ -1,0 +1,30 @@
+name: Semgrep Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 1 * * 1' # every Monday 01:00 UTC
+
+jobs:
+  semgrep:
+    name: Scan
+    runs-on: ubuntu-latest
+    # Skip Dependabot PRs — no secrets available there
+    if: github.actor != 'dependabot[bot]'
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: semgrep ci --config=auto
+        env:
+          # Optional: create a free account at semgrep.dev and add the token
+          # as a repository secret to unlock more rules and view results in
+          # the Semgrep dashboard. Without it the scan still runs with
+          # community rules.
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
