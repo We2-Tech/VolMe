@@ -22,7 +22,7 @@ export default defineConfig({
       // MUI v9 ESM imports this as a directory path, which Node ESM rejects
       'react-transition-group/TransitionGroupContext': resolve(
         __dirname,
-        'node_modules/react-transition-group/cjs/TransitionGroupContext.js'
+        'node_modules/react-transition-group/cjs/TransitionGroupContext.js',
       ),
     },
   },
