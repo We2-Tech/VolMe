@@ -10,7 +10,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "type-check": "tsc -b",
+    "type-check": "next typegen && tsc -b",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui"
