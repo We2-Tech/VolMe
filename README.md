@@ -405,7 +405,6 @@ src/app/[locale]/
 
 ```tsx
 import { Link, useRouter } from '@/i18n/navigation'
-
 ;<Link href="/about">About</Link>
 
 const router = useRouter()
