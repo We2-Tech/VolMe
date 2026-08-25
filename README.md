@@ -225,6 +225,17 @@ Value: true
 - `ghcr.io/<owner>/<repo>:latest`
 - `ghcr.io/<owner>/<repo>:sha-xxxxxxx`
 
+### 第九步：启用自动部署（可选）
+
+CI 的 deploy stage 默认关闭。因为 self-hosted runner 本身就是部署目标服务器（见下方"CI 流水线"），开启后每次 push 到 `main` 都会在 runner 所在机器上执行 `docker compose up -d --build`，真实启停容器。在 GitHub 仓库的 **Settings → Variables → Actions** 中新建变量即可开启：
+
+```
+Name:  ENABLE_DEPLOY
+Value: true
+```
+
+多个仓库共用同一台 self-hosted runner 时，只给需要自动部署的仓库开启这个变量。
+
 ---
 
 ## 常用命令
@@ -300,17 +311,17 @@ push / PR 到 `main` 时依次执行 semgrep → quality → test → build，�
 
 ```
 semgrep → quality → test → build ─┬─▶ docker   推送镜像到 GHCR（需开启 ENABLE_DOCKER_PUSH）
-                                   └─▶ deploy   自托管 runner 上 docker compose up -d --build
+                                   └─▶ deploy   自托管 runner 上 docker compose up -d --build（需开启 ENABLE_DEPLOY）
 ```
 
-| Stage       | 内容                                       | 触发条件                     |
-| ----------- | ------------------------------------------ | ---------------------------- |
-| **semgrep** | Semgrep 安全扫描（GitHub-hosted）          | push + PR                    |
-| **quality** | lint · format:check · type-check           | push + PR                    |
-| **test**    | Vitest 单测                                | push + PR                    |
-| **build**   | 生产构建，产物上传为 Artifact（保留 7 天） | push + PR                    |
-| **docker**  | 构建镜像并推送到 GHCR                      | 仅 push main（需开启变量）   |
-| **deploy**  | 自托管 runner 上原地重建并重启容器         | 仅 push main（常开，无开关） |
+| Stage       | 内容                                       | 触发条件                   |
+| ----------- | ------------------------------------------ | -------------------------- |
+| **semgrep** | Semgrep 安全扫描（GitHub-hosted）          | push + PR                  |
+| **quality** | lint · format:check · type-check           | push + PR                  |
+| **test**    | Vitest 单测                                | push + PR                  |
+| **build**   | 生产构建，产物上传为 Artifact（保留 7 天） | push + PR                  |
+| **docker**  | 构建镜像并推送到 GHCR                      | 仅 push main（需开启变量） |
+| **deploy**  | 自托管 runner 上原地重建并重启容器         | 仅 push main（需开启变量） |
 
 **修改 CI 配置**：所有可调参数集中在 `.github/workflows/ci.yml` 顶部的 `env` 块：
 
@@ -524,6 +535,17 @@ Once enabled, every push to `main` builds and pushes to GHCR:
 - `ghcr.io/<owner>/<repo>:latest`
 - `ghcr.io/<owner>/<repo>:sha-xxxxxxx`
 
+### Step 9 — Enable automatic deploy (optional)
+
+The deploy stage in CI is disabled by default. The self-hosted runner IS the deploy target (see "CI Pipeline" below), so enabling this makes every push to `main` run `docker compose up -d --build` on the runner's host — real containers, really started/stopped. Enable it by creating an Actions variable in **Settings → Variables → Actions**:
+
+```
+Name:  ENABLE_DEPLOY
+Value: true
+```
+
+If multiple repos share the same self-hosted runner, only turn this on for the ones you actually want auto-deployed.
+
 ---
 
 ## Scripts
@@ -599,17 +621,17 @@ semgrep → quality → test → build run sequentially on every push and pull r
 
 ```
 semgrep → quality → test → build ─┬─▶ docker   push image to GHCR (needs ENABLE_DOCKER_PUSH)
-                                   └─▶ deploy   docker compose up -d --build on the self-hosted runner
+                                   └─▶ deploy   docker compose up -d --build on the self-hosted runner (needs ENABLE_DEPLOY)
 ```
 
-| Stage       | Steps                                              | Runs on                          |
-| ----------- | -------------------------------------------------- | -------------------------------- |
-| **semgrep** | Semgrep security scan (GitHub-hosted)              | push + PR                        |
-| **quality** | lint · format:check · type-check                   | push + PR                        |
-| **test**    | Vitest                                             | push + PR                        |
-| **build**   | production build, artifact uploaded (7-day retain) | push + PR                        |
-| **docker**  | build & push to GHCR                               | push to main (opt-in var)        |
-| **deploy**  | rebuild & recreate containers in place, on-runner  | push to main (always, no toggle) |
+| Stage       | Steps                                              | Runs on                   |
+| ----------- | -------------------------------------------------- | ------------------------- |
+| **semgrep** | Semgrep security scan (GitHub-hosted)              | push + PR                 |
+| **quality** | lint · format:check · type-check                   | push + PR                 |
+| **test**    | Vitest                                             | push + PR                 |
+| **build**   | production build, artifact uploaded (7-day retain) | push + PR                 |
+| **docker**  | build & push to GHCR                               | push to main (opt-in var) |
+| **deploy**  | rebuild & recreate containers in place, on-runner  | push to main (opt-in var) |
 
 To customise CI, edit the `env` block at the top of `.github/workflows/ci.yml`:
 

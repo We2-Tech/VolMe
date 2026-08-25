@@ -149,10 +149,15 @@ jobs:
   # ── Stage 5: Deploy (self-hosted) ────────────────────────────────────────────
   # The runner IS the target server, so deploy = rebuild + recreate in place.
   # Independent of the GHCR push above; runs only once the full pipeline is green.
+  # Disabled by default — this job spins up real containers on the runner's
+  # host, and repos sharing that self-hosted runner may not want that just
+  # from a push to main. To enable:
+  #   Go to Settings → Variables → Actions → New variable
+  #   Name: ENABLE_DEPLOY  Value: true
   deploy:
     name: Deploy
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: vars.ENABLE_DEPLOY == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
