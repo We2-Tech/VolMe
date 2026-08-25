@@ -1,12 +1,12 @@
 name: Semgrep Security Scan
 
+# push/pull_request scans are handled by ci.yml's Stage 0 (job `semgrep`) —
+# this workflow only runs on the weekly schedule, so it isn't a duplicate
+# run of the same scan.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   schedule:
     - cron: '0 1 * * 1' # every Monday 01:00 UTC
+  workflow_dispatch: {}
 
 jobs:
   semgrep:
