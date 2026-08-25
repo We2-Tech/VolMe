@@ -8,18 +8,19 @@
 
 ## 技术栈
 
-| 分类      | 技术                                                                                           |
-| --------- | ---------------------------------------------------------------------------------------------- |
-| 框架      | Next.js 16 + TypeScript 5 + React 19                                                           |
-| UI 组件库 | Material UI 9 + 暗黑模式（CSS Variables）+ MUI X（DataGrid · Charts · DatePickers · TreeView） |
-| 国际化    | next-intl v4（App Router · 自动语言检测 · 服务端 + 客户端翻译）                                |
-| 数据校验  | Zod v4                                                                                         |
-| 测试      | Vitest + React Testing Library                                                                 |
-| 代码规范  | ESLint + Prettier                                                                              |
-| 容器化    | Docker multi-stage build + Node.js standalone + Nginx 反向代理                                 |
-| CI/CD     | GitHub Actions（semgrep · lint · format · type-check · test · build）                          |
-| 依赖更新  | Dependabot（每周一自动 PR）                                                                    |
-| 安全扫描  | Semgrep（push/PR + 每周定时）                                                                  |
+| 分类      | 技术                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------- |
+| 框架      | Next.js 16 + TypeScript 5 + React 19                                                              |
+| UI 组件库 | Material UI 9 + 暗黑模式（CSS Variables）+ MUI X（DataGrid · Charts · DatePickers · TreeView）    |
+| 国际化    | next-intl v4（App Router · 自动语言检测 · 服务端 + 客户端翻译）                                   |
+| 数据校验  | Zod v4                                                                                            |
+| 数据库    | MongoDB + Mongoose（连接封装在 `src/lib/server/db.ts`）                                           |
+| 测试      | Vitest + React Testing Library                                                                    |
+| 代码规范  | ESLint + Prettier                                                                                 |
+| 容器化    | Docker multi-stage build + Node.js standalone + Nginx 反向代理 + MongoDB + 可选 Cloudflare Tunnel |
+| CI/CD     | GitHub Actions（semgrep · lint · format · type-check · test · build）                             |
+| 依赖更新  | Dependabot（每周一自动 PR）                                                                       |
+| 安全扫描  | Semgrep（push/PR + 每周定时）                                                                     |
 
 ---
 
@@ -63,8 +64,10 @@ npm run dev
 │   │   ├── request.ts       # 服务端 getTranslations 配置
 │   │   └── routing.ts       # 支持的 locale 列表与默认 locale
 │   ├── lib/
-│   │   └── schemas/
-│   │       └── index.ts     # Zod schemas（User · LoginForm · Pagination 等）
+│   │   ├── schemas/
+│   │   │   └── index.ts     # Zod schemas（User · LoginForm · Pagination 等）
+│   │   └── server/
+│   │       └── db.ts        # Mongoose 连接封装（读取 MONGO_URI，跨热重载缓存连接）
 │   ├── test/
 │   │   └── setup.ts         # Testing Library 全局配置
 │   ├── proxy.ts             # next-intl 中间件（自动 locale 检测与重定向）
@@ -193,7 +196,22 @@ vi.mock('@/i18n/navigation', () => ({
 
 参考 `src/components/__tests__/LocaleSwitcher.test.tsx` 查看完整示例。
 
-### 第七步：启用 Docker 镜像推送（可选）
+### 第七步：配置数据库连接
+
+1. 复制环境变量模板：`cp .env.example .env`
+2. 本地开发时启动一个 MongoDB 实例（或使用 `docker compose up -d mongo`），并在 `.env` 中设置 `MONGO_URI`
+3. 在 Server Component / Route Handler / Server Action 中按需调用 `connectDB()`：
+
+```ts
+import { connectDB } from '@/lib/server/db'
+
+await connectDB()
+// 定义 Mongoose model 并查询……
+```
+
+`connectDB()` 会跨请求 / 热重载复用同一个连接（见 `src/lib/server/db.ts`），不需要每次手动管理连接池。Model 建议放在 `src/lib/server/models/` 下（新建该目录）。
+
+### 第八步：启用 Docker 镜像推送（可选）
 
 CI 的 Docker stage 默认关闭。在 GitHub 仓库的 **Settings → Variables → Actions** 中新建变量即可开启：
 
@@ -230,7 +248,11 @@ npm run test:ui        # Vitest 浏览器 UI
 ## Docker 部署
 
 ```bash
-# 构建镜像并后台启动（首次约需 1-2 分钟）
+# 1. 准备环境变量
+cp .env.example .env
+# 按需修改 .env（本地默认值已指向 compose 内置的 mongo 服务）
+
+# 2. 构建镜像并后台启动（首次约需 1-2 分钟）
 docker compose up -d
 
 # 访问 http://localhost:3000
@@ -243,12 +265,30 @@ docker compose ps
 docker compose logs -f
 ```
 
-| 容器    | 基础镜像          | 职责                                         |
-| ------- | ----------------- | -------------------------------------------- |
-| `app`   | node:22-alpine    | 运行 Next.js standalone server（端口 3000）  |
-| `nginx` | nginx:1.27-alpine | 反向代理，永久缓存 `/_next/static/` 静态资源 |
+| 容器     | 基础镜像               | 职责                                         |
+| -------- | ---------------------- | -------------------------------------------- |
+| `app`    | node:22-alpine         | 运行 Next.js standalone server（端口 3000）  |
+| `nginx`  | nginx:1.27-alpine      | 反向代理，永久缓存 `/_next/static/` 静态资源 |
+| `mongo`  | mongo:latest           | 数据库，数据持久化在 `mongo-data` volume 中  |
+| `tunnel` | cloudflare/cloudflared | 可选：Cloudflare Tunnel，暴露站点到公网      |
 
 Dockerfile 采用三阶段构建（deps → builder → runner）。最终镜像只包含 standalone bundle，无 devDependencies，体积极小。
+
+### 数据库（MongoDB）
+
+`app` 容器默认连接 compose 内置的 `mongo` 服务（`MONGO_URI=mongodb://mongo:27017/nextjs-template`），数据持久化在 `mongo-data` volume 中。如需指向外部 MongoDB（如 Atlas），在 `.env` 中覆盖 `MONGO_URI` 即可，`mongo` 服务仍会启动但不会被使用。
+
+### Cloudflare Tunnel（可选）
+
+`tunnel` 服务默认**不会**随 `docker compose up -d`启动 —— 它挂在 `tunnel` compose profile 下，避免未设置 `TUNNEL_TOKEN` 时导致启动失败（见 [docs/decisions/0001](docs/decisions/0001-cloudflare-tunnel-is-behind-a-compose-profile.md)）。启用步骤：
+
+1. 在 Cloudflare Zero Trust 控制台创建一个 tunnel，将其 public hostname 指向 `http://nginx:8080`
+2. 复制 tunnel token，写入 `.env` 的 `TUNNEL_TOKEN`
+3. 用 profile 显式启动：
+
+```bash
+docker compose --profile tunnel up -d
+```
 
 ---
 
@@ -316,18 +356,19 @@ A production-ready Next.js blueprint with App Router, SSR, i18n, MUI, and a full
 
 ## Tech Stack
 
-| Category           | Technology                                                                                     |
-| ------------------ | ---------------------------------------------------------------------------------------------- |
-| Framework          | Next.js 16 + TypeScript 5 + React 19                                                           |
-| UI                 | Material UI 9 + dark mode (CSS Variables) + MUI X (DataGrid · Charts · DatePickers · TreeView) |
-| i18n               | next-intl v4 (App Router · auto locale detection · server + client)                            |
-| Validation         | Zod v4                                                                                         |
-| Testing            | Vitest + React Testing Library                                                                 |
-| Linting            | ESLint + Prettier                                                                              |
-| Container          | Docker multi-stage build + Node.js standalone + Nginx reverse proxy                            |
-| CI/CD              | GitHub Actions (semgrep · lint · format · type-check · test · build)                           |
-| Dependency updates | Dependabot (weekly grouped PRs)                                                                |
-| Security           | Semgrep (push/PR + weekly schedule)                                                            |
+| Category           | Technology                                                                                                 |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Framework          | Next.js 16 + TypeScript 5 + React 19                                                                       |
+| UI                 | Material UI 9 + dark mode (CSS Variables) + MUI X (DataGrid · Charts · DatePickers · TreeView)             |
+| i18n               | next-intl v4 (App Router · auto locale detection · server + client)                                        |
+| Validation         | Zod v4                                                                                                     |
+| Database           | MongoDB + Mongoose (connection wrapper in `src/lib/server/db.ts`)                                          |
+| Testing            | Vitest + React Testing Library                                                                             |
+| Linting            | ESLint + Prettier                                                                                          |
+| Container          | Docker multi-stage build + Node.js standalone + Nginx reverse proxy + MongoDB + optional Cloudflare Tunnel |
+| CI/CD              | GitHub Actions (semgrep · lint · format · type-check · test · build)                                       |
+| Dependency updates | Dependabot (weekly grouped PRs)                                                                            |
+| Security           | Semgrep (push/PR + weekly schedule)                                                                        |
 
 ---
 
@@ -454,7 +495,22 @@ vi.mock('@/i18n/navigation', () => ({
 
 See `src/components/__tests__/LocaleSwitcher.test.tsx` for a complete example.
 
-### Step 7 — Enable Docker image push (optional)
+### Step 7 — Configure the database connection
+
+1. Copy the env template: `cp .env.example .env`
+2. For local dev, run a MongoDB instance (or `docker compose up -d mongo`) and set `MONGO_URI` in `.env`
+3. Call `connectDB()` wherever you need it — Server Components, Route Handlers, Server Actions:
+
+```ts
+import { connectDB } from '@/lib/server/db'
+
+await connectDB()
+// define Mongoose models and query…
+```
+
+`connectDB()` reuses the same connection across requests and hot-reloads (see `src/lib/server/db.ts`) — no manual pool management needed. Put models under `src/lib/server/models/` (create that directory).
+
+### Step 8 — Enable Docker image push (optional)
 
 The Docker stage in CI is disabled by default. Enable it by creating an Actions variable in **Settings → Variables → Actions**:
 
@@ -491,7 +547,11 @@ npm run test:ui        # Vitest browser UI
 ## Docker
 
 ```bash
-# Build and start in background (first run takes 1–2 minutes)
+# 1. Prepare environment variables
+cp .env.example .env
+# adjust .env as needed (the default already points at the bundled mongo service)
+
+# 2. Build and start in background (first run takes 1–2 minutes)
 docker compose up -d
 
 # Visit http://localhost:3000
@@ -504,12 +564,30 @@ docker compose ps
 docker compose logs -f
 ```
 
-| Container | Base image        | Role                                                  |
-| --------- | ----------------- | ----------------------------------------------------- |
-| `app`     | node:22-alpine    | Runs the Next.js standalone server (port 3000)        |
-| `nginx`   | nginx:1.27-alpine | Reverse proxy; caches `/_next/static/` assets forever |
+| Container | Base image             | Role                                                   |
+| --------- | ---------------------- | ------------------------------------------------------ |
+| `app`     | node:22-alpine         | Runs the Next.js standalone server (port 3000)         |
+| `nginx`   | nginx:1.27-alpine      | Reverse proxy; caches `/_next/static/` assets forever  |
+| `mongo`   | mongo:latest           | Database; data persisted in the `mongo-data` volume    |
+| `tunnel`  | cloudflare/cloudflared | Optional: Cloudflare Tunnel exposing the site publicly |
 
 The Dockerfile uses a three-stage build (deps → builder → runner). The final image contains only the standalone bundle — no devDependencies — keeping the image size minimal.
+
+### Database (MongoDB)
+
+The `app` container connects to the bundled `mongo` service by default (`MONGO_URI=mongodb://mongo:27017/nextjs-template`), with data persisted in the `mongo-data` volume. To point at an external MongoDB (e.g. Atlas), override `MONGO_URI` in `.env` — the `mongo` service will still start but go unused.
+
+### Cloudflare Tunnel (optional)
+
+The `tunnel` service does **not** start with a plain `docker compose up -d` — it sits behind the `tunnel` compose profile so a missing `TUNNEL_TOKEN` doesn't break the default startup path (see [docs/decisions/0001](docs/decisions/0001-cloudflare-tunnel-is-behind-a-compose-profile.md)). To enable it:
+
+1. Create a tunnel in the Cloudflare Zero Trust dashboard and point its public hostname at `http://nginx:8080`
+2. Copy the tunnel token into `TUNNEL_TOKEN` in `.env`
+3. Start it explicitly with the profile:
+
+```bash
+docker compose --profile tunnel up -d
+```
 
 ---
 

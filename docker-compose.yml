@@ -3,6 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      # mongo service below; override MONGO_URI from .env if pointing elsewhere
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/nextjs-template}
+    depends_on:
+      mongo:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/']
@@ -26,3 +34,37 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  mongo:
+    image: mongo:latest
+    command: ['--wiredTigerCacheSizeGB', '1']
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Optional: Cloudflare tunnel exposing the site. Point the tunnel's public
+  # hostname to http://nginx:8080. Requires TUNNEL_TOKEN in .env.
+  # Behind a profile so a plain `docker compose up -d` doesn't start it — opt
+  # in with `docker compose --profile tunnel up -d`. TUNNEL_TOKEN defaults to
+  # empty rather than a hard `:?` requirement: compose interpolates every
+  # service's env vars up front regardless of active profiles, so a required
+  # var here would break the default (non-tunnel) `up -d` too. With it unset,
+  # cloudflared just fails fast if you start this profile without configuring it.
+  # see docs/decisions/0001-cloudflare-tunnel-is-behind-a-compose-profile.md
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ['tunnel']
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
+    command: tunnel --no-autoupdate run
+    depends_on:
+      - nginx
+
+volumes:
+  mongo-data: {}

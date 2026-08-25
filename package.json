@@ -27,6 +27,7 @@
     "@mui/x-date-pickers": "^9.11.0",
     "@mui/x-tree-view": "^9.11.0",
     "dayjs": "^1.11.21",
+    "mongoose": "^9.6.3",
     "next": "16.3.1",
     "next-intl": "^4.13.7",
     "react": "19.2.4",

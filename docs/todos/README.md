@@ -9,6 +9,6 @@ Work that was intentionally deferred, recorded with enough context that whoever 
 
 ## Index
 
-| #                                  | Title                       | Area                       |
-| ---------------------------------- | --------------------------- | -------------------------- |
-| | | |
+| #   | Title | Area |
+| --- | ----- | ---- |
+|     |       |      |
