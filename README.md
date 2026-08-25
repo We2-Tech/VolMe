@@ -256,19 +256,21 @@ Dockerfile 采用三阶段构建（deps → builder → runner）。最终镜像
 
 ### CI 流水线
 
-push / PR 到 `main` 时，按顺序执行 5 个 stage，任意一个失败即终止后续：
+push / PR 到 `main` 时依次执行 semgrep → quality → test → build，任意一个失败即终止后续；`build` 成功后并行触发两个条件 stage：
 
 ```
-semgrep → quality → test → build → docker
+semgrep → quality → test → build ─┬─▶ docker   推送镜像到 GHCR（需开启 ENABLE_DOCKER_PUSH）
+                                   └─▶ deploy   自托管 runner 上 docker compose up -d --build
 ```
 
-| Stage       | 内容                                       | 触发条件               |
-| ----------- | ------------------------------------------ | ---------------------- |
-| **semgrep** | Semgrep 安全扫描（GitHub-hosted）          | push + PR              |
-| **quality** | lint · format:check · type-check           | push + PR              |
-| **test**    | Vitest 单测                                | push + PR              |
-| **build**   | 生产构建，产物上传为 Artifact（保留 7 天） | push + PR              |
-| **docker**  | 构建镜像并推送到 GHCR                      | 仅 push main（需开启） |
+| Stage       | 内容                                       | 触发条件                     |
+| ----------- | ------------------------------------------ | ---------------------------- |
+| **semgrep** | Semgrep 安全扫描（GitHub-hosted）          | push + PR                    |
+| **quality** | lint · format:check · type-check           | push + PR                    |
+| **test**    | Vitest 单测                                | push + PR                    |
+| **build**   | 生产构建，产物上传为 Artifact（保留 7 天） | push + PR                    |
+| **docker**  | 构建镜像并推送到 GHCR                      | 仅 push main（需开启变量）   |
+| **deploy**  | 自托管 runner 上原地重建并重启容器         | 仅 push main（常开，无开关） |
 
 **修改 CI 配置**：所有可调参数集中在 `.github/workflows/ci.yml` 顶部的 `env` 块：
 
@@ -515,19 +517,21 @@ The Dockerfile uses a three-stage build (deps → builder → runner). The final
 
 ### CI Pipeline
 
-5 sequential stages triggered on every push and pull request to `main` — any failure stops the rest:
+semgrep → quality → test → build run sequentially on every push and pull request to `main` — any failure stops the rest. Once `build` succeeds, two conditional stages fire in parallel:
 
 ```
-semgrep → quality → test → build → docker
+semgrep → quality → test → build ─┬─▶ docker   push image to GHCR (needs ENABLE_DOCKER_PUSH)
+                                   └─▶ deploy   docker compose up -d --build on the self-hosted runner
 ```
 
-| Stage       | Steps                                              | Runs on               |
-| ----------- | -------------------------------------------------- | --------------------- |
-| **semgrep** | Semgrep security scan (GitHub-hosted)              | push + PR             |
-| **quality** | lint · format:check · type-check                   | push + PR             |
-| **test**    | Vitest                                             | push + PR             |
-| **build**   | production build, artifact uploaded (7-day retain) | push + PR             |
-| **docker**  | build & push to GHCR                               | push to main (opt-in) |
+| Stage       | Steps                                              | Runs on                          |
+| ----------- | -------------------------------------------------- | -------------------------------- |
+| **semgrep** | Semgrep security scan (GitHub-hosted)              | push + PR                        |
+| **quality** | lint · format:check · type-check                   | push + PR                        |
+| **test**    | Vitest                                             | push + PR                        |
+| **build**   | production build, artifact uploaded (7-day retain) | push + PR                        |
+| **docker**  | build & push to GHCR                               | push to main (opt-in var)        |
+| **deploy**  | rebuild & recreate containers in place, on-runner  | push to main (always, no toggle) |
 
 To customise CI, edit the `env` block at the top of `.github/workflows/ci.yml`:
 

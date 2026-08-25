@@ -6,6 +6,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 <!-- END:nextjs-agent-rules -->
 
+# Using this template
+
+`README.md` documents this project's tech stack, directory structure, a step-by-step "remove the template, build your app" checklist, scripts, and CI/CD setup. Unlike this file, it is **not** injected into context automatically — it goes unread unless you open it yourself.
+
+- Before removing template/example code (`src/components/HomeView.tsx`, the placeholder Zod schemas, etc.) or building the project's first real features, read `README.md` in full and follow its "用此模板创建新项目 / How to Use This Template" section step by step rather than improvising an order.
+- Whenever a change makes something `README.md` documents go stale — tech stack, directory structure, `package.json` scripts, the CI stage list/diagram, Docker instructions — update `README.md` in the same change. It has parallel 中文 and English sections covering the same content; keep both in sync.
+
 # Material UI (this template's design system)
 
 This project uses **MUI v9** for all UI. Do not introduce Tailwind, plain CSS modules, or other styling systems — style with MUI's `sx` prop, `styled()`, or the theme.
