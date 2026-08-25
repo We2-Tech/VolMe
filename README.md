@@ -20,6 +20,7 @@
 | 容器化    | Docker multi-stage build + Node.js standalone + Nginx 反向代理 + MongoDB + 可选 Cloudflare Tunnel |
 | CI/CD     | GitHub Actions（semgrep · lint · format · type-check · test · build）                             |
 | 依赖更新  | Dependabot（每周一自动 PR）                                                                       |
+| 模板同步  | template-sync（每周对比模板仓库自动开 PR）                                                        |
 | 安全扫描  | Semgrep（push/PR + 每周定时）                                                                     |
 
 ---
@@ -236,6 +237,18 @@ Value: true
 
 多个仓库共用同一台 self-hosted runner 时，只给需要自动部署的仓库开启这个变量。
 
+### 第十步：模板同步（可选，视仓库可见性而定）
+
+本仓库更新（CI workflow、`AGENTS.md`、文档等）后，用此模板创建的项目不会自动感到——`.github/workflows/template-sync.yml` 就是为此而生：它随模板一起被复制到新仓库，每周一自动对比 `We2-Tech/nextjs-template` 并开一个同步 PR（不会自动合并，冲突会在 PR 里正常呈现，交给你手动处理）。
+
+- 如果 `We2-Tech/nextjs-template` 是**公开**仓库：默认的 `GITHUB_TOKEN` 就够用，无需任何配置。
+- 如果它是**私有**仓库：需要在使用此模板创建的仓库中，新建一个有权读取模板仓库的 Personal Access Token，存为 secret：
+
+```
+Name:  TEMPLATE_SYNC_TOKEN
+Value: <PAT with read access to We2-Tech/nextjs-template>
+```
+
 ---
 
 ## 常用命令
@@ -291,7 +304,7 @@ Dockerfile 采用三阶段构建（deps → builder → runner）。最终镜像
 
 ### Cloudflare Tunnel（可选）
 
-`tunnel` 服务默认**不会**随 `docker compose up -d`启动 —— 它挂在 `tunnel` compose profile 下，避免未设置 `TUNNEL_TOKEN` 时导致启动失败（见 [docs/decisions/0001](docs/decisions/0001-cloudflare-tunnel-is-behind-a-compose-profile.md)）。启用步骤：
+`tunnel` 服务默认**不会**随 `docker compose up -d`启动 —— 它挂在 `tunnel` compose profile 下，避免未设置 `TUNNEL_TOKEN` 时导致启动失败。启用步骤：
 
 1. 在 Cloudflare Zero Trust 控制台创建一个 tunnel，将其 public hostname 指向 `http://nginx:8080`
 2. 复制 tunnel token，写入 `.env` 的 `TUNNEL_TOKEN`
@@ -355,6 +368,10 @@ env:
 | **typescript** | `typescript` · `@types/*`                     |
 | GitHub Actions | 工作流中的 actions 版本                       |
 
+### 模板同步
+
+用此模板创建的仓库会自带 `.github/workflows/template-sync.yml`，每周一定时对比本仓库并开 PR 同步上游改动（CI workflow、`AGENTS.md`、文档等），也可以在 Actions 页手动触发。详见上方["第十步：模板同步"](#第十步模板同步可选视仓库可见性而定)。
+
 ---
 
 ---
@@ -379,6 +396,7 @@ A production-ready Next.js blueprint with App Router, SSR, i18n, MUI, and a full
 | Container          | Docker multi-stage build + Node.js standalone + Nginx reverse proxy + MongoDB + optional Cloudflare Tunnel |
 | CI/CD              | GitHub Actions (semgrep · lint · format · type-check · test · build)                                       |
 | Dependency updates | Dependabot (weekly grouped PRs)                                                                            |
+| Template sync      | template-sync (weekly PR diffing against the template repo)                                                |
 | Security           | Semgrep (push/PR + weekly schedule)                                                                        |
 
 ---
@@ -546,6 +564,18 @@ Value: true
 
 If multiple repos share the same self-hosted runner, only turn this on for the ones you actually want auto-deployed.
 
+### Step 10 — Template sync (optional, depends on this template's visibility)
+
+Repos created from this template don't otherwise find out when it updates (new CI workflows, `AGENTS.md` changes, docs, etc). `.github/workflows/template-sync.yml` solves this — it ships with the template itself, so it's already in your repo. Every Monday it diffs against `We2-Tech/nextjs-template` and opens a PR with whatever changed upstream (nothing auto-merges; conflicts show up as normal merge conflicts in that PR for you to resolve).
+
+- If `We2-Tech/nextjs-template` is **public**: the default `GITHUB_TOKEN` is enough, no setup needed.
+- If it's **private**: create a Personal Access Token with read access to the template repo and store it as a secret in your repo:
+
+```
+Name:  TEMPLATE_SYNC_TOKEN
+Value: <PAT with read access to We2-Tech/nextjs-template>
+```
+
 ---
 
 ## Scripts
@@ -601,7 +631,7 @@ The `app` container connects to the bundled `mongo` service by default (`MONGO_U
 
 ### Cloudflare Tunnel (optional)
 
-The `tunnel` service does **not** start with a plain `docker compose up -d` — it sits behind the `tunnel` compose profile so a missing `TUNNEL_TOKEN` doesn't break the default startup path (see [docs/decisions/0001](docs/decisions/0001-cloudflare-tunnel-is-behind-a-compose-profile.md)). To enable it:
+The `tunnel` service does **not** start with a plain `docker compose up -d` — it sits behind the `tunnel` compose profile so a missing `TUNNEL_TOKEN` doesn't break the default startup path. To enable it:
 
 1. Create a tunnel in the Cloudflare Zero Trust dashboard and point its public hostname at `http://nginx:8080`
 2. Copy the tunnel token into `TUNNEL_TOKEN` in `.env`
@@ -664,3 +694,7 @@ Runs every Monday at 09:00 (Asia/Shanghai). Dependencies are grouped to minimise
 | **testing**    | `vitest` · `@vitejs/*` · `@testing-library/*` |
 | **typescript** | `typescript` · `@types/*`                     |
 | GitHub Actions | action versions in workflow files             |
+
+### Template sync
+
+Repos created from this template ship with `.github/workflows/template-sync.yml`, which diffs against this repo every Monday and opens a PR to pull in upstream changes (CI workflows, `AGENTS.md`, docs, etc). It can also be triggered manually from the Actions tab. See ["Step 10 — Template sync"](#step-10--template-sync-optional-depends-on-this-templates-visibility) above.

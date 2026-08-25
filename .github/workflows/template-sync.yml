@@ -1,0 +1,43 @@
+name: Template sync
+
+# Keeps repos created from this template (via "Use this template") up to
+# date with upstream changes — CI workflows, AGENTS.md, docs, etc. This
+# workflow ships as part of the template itself, so new repos get it for
+# free and don't have to opt in.
+#
+# On each run it diffs against We2-Tech/nextjs-template and opens a PR with
+# whatever changed upstream. Nothing merges automatically — review the PR
+# like any other; a file this repo has diverged from upstream on will show
+# up as a normal merge conflict for you to resolve there.
+#
+# If We2-Tech/nextjs-template is private, add a Personal Access Token with
+# read access to it as a secret named TEMPLATE_SYNC_TOKEN in this repo's
+# settings. If it's public, the default GITHUB_TOKEN is enough — no extra
+# setup needed.
+
+on:
+  schedule:
+    - cron: '0 2 * * 1' # every Monday 02:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Sync from template
+    runs-on: ubuntu-latest
+    # Skip inside the template repo itself — syncing it against itself is a
+    # no-op that would otherwise open a self-referential PR every run.
+    if: github.repository != 'We2-Tech/nextjs-template'
+    steps:
+      - uses: AndreasAugustin/actions-template-sync@8a0f668b83c32a0f673353086d74f12b8853d4f5 # v2.5.3
+        with:
+          source_gh_token: ${{ secrets.TEMPLATE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          target_gh_token: ${{ secrets.GITHUB_TOKEN }}
+          source_repo_path: We2-Tech/nextjs-template
+          upstream_branch: main
+          pr_title: 'chore: sync changes from nextjs-template'
+          pr_labels: template-sync
+          is_pr_cleanup: 'true' # close older open sync PRs instead of stacking them

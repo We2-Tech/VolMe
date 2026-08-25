@@ -55,7 +55,6 @@ services:
   # service's env vars up front regardless of active profiles, so a required
   # var here would break the default (non-tunnel) `up -d` too. With it unset,
   # cloudflared just fails fast if you start this profile without configuring it.
-  # see docs/decisions/0001-cloudflare-tunnel-is-behind-a-compose-profile.md
   tunnel:
     image: cloudflare/cloudflared:latest
     profiles: ['tunnel']
