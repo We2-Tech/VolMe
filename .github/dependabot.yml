@@ -12,23 +12,16 @@ updates:
       default-days: 7
     open-pull-requests-limit: 10
     groups:
-      mui:
+      # All minor/patch bumps land in a single weekly PR, auto-merged by
+      # .github/workflows/dependabot-auto-merge.yml once CI is green.
+      minor-patch:
         patterns:
-          - '@mui/*'
-          - '@emotion/*'
-      nextjs:
-        patterns:
-          - 'next'
-          - 'next-intl'
-      testing:
-        patterns:
-          - 'vitest'
-          - '@vitejs/*'
-          - '@testing-library/*'
-      typescript:
-        patterns:
-          - 'typescript'
-          - '@types/*'
+          - '*'
+        update-types:
+          - minor
+          - patch
+      # Majors are left ungrouped (one PR each) so they always get a
+      # manual look before merging.
 
   # GitHub Actions
   - package-ecosystem: github-actions
@@ -40,3 +33,10 @@ updates:
       timezone: Asia/Shanghai
     cooldown:
       default-days: 7
+    groups:
+      minor-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
