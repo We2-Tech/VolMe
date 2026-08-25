@@ -1,9 +1,5 @@
 name: Dependabot auto-merge
 
-# Auto-approves and enables auto-merge for Dependabot PRs that bump a
-# minor or patch version. Major-version PRs are left alone for manual
-# review. Auto-merge only *completes* once the required status checks
-# on the `main` branch protection rule pass — see repo Settings.
 on: pull_request
 
 permissions:
@@ -21,13 +17,6 @@ jobs:
         uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
-
-      - name: Approve PR
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge
         if: steps.metadata.outputs.update-type != 'version-update:semver-major'
