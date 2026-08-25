@@ -145,3 +145,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ── Stage 5: Deploy (self-hosted) ────────────────────────────────────────────
+  # The runner IS the target server, so deploy = rebuild + recreate in place.
+  # Independent of the GHCR push above; runs only once the full pipeline is green.
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Deploy
+        run: docker compose up -d --build
