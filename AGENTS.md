@@ -13,6 +13,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Before removing template/example code (`src/components/HomeView.tsx`, the placeholder Zod schemas, etc.) or building the project's first real features, read `README.md` in full and follow its "用此模板创建新项目 / How to Use This Template" section step by step rather than improvising an order.
 - Whenever a change makes something `README.md` documents go stale — tech stack, directory structure, `package.json` scripts, the CI stage list/diagram, Docker instructions — update `README.md` in the same change. It has parallel 中文 and English sections covering the same content; keep both in sync.
 
+# Decisions & deferred work
+
+Agent sessions don't share memory — a non-obvious decision made in one session, or work someone deliberately left for later, is invisible to the next session unless it's written where that session will actually look, _and_ unless the next session actually goes looking. Both halves are mandatory, not optional judgment calls:
+
+- **Before starting non-trivial work, and always when investigating something that doesn't make sense from the code alone** (a confusing bug, a surprising failure, a "why on earth is this done this way") — read [`docs/decisions/README.md`](docs/decisions/README.md) and [`docs/todos/README.md`](docs/todos/README.md) first. The explanation, or the reason nobody's fixed it yet, may already be recorded there — check before spending time re-deriving it from scratch.
+- **The moment something takes real digging to understand, or you make a call that isn't obvious from the resulting code, is the signal to record it** — once resolved, add an entry to `docs/decisions/` in the same change, before treating the task as done. Entries are append-only — a changed decision gets a _new_ entry, and the old one is marked superseded, never edited away.
+- **Before ending a task that leaves something unfinished or explicitly out of scope**, add an entry to `docs/todos/` in the same change — don't just mention it in the final response and let it evaporate when the session ends. When you resolve an existing todo, delete its file and its index row in the same change — a stale todo left behind is worse than none.
+- **Whenever a decision or todo is tied to a specific place in the code, add a short comment there pointing back with the entry's relative path** (e.g. `# see docs/decisions/0001-docker-healthcheck-uses-127-0-0-1.md`). The doc linking to the code isn't enough by itself — the code has to link back, because that's the only breadcrumb visible to someone who's already staring at the confusing line with no reason to go browsing `docs/`.
+
 # Material UI (this template's design system)
 
 This project uses **MUI v9** for all UI. Do not introduce Tailwind, plain CSS modules, or other styling systems — style with MUI's `sx` prop, `styled()`, or the theme.
