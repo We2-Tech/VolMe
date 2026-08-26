@@ -165,5 +165,17 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # docker-compose.yml's `app` service requires a `.env` file (env_file:).
+      # actions/checkout wipes untracked files (incl. .env) on every run, so a
+      # manually-placed .env on the runner wouldn't survive — regenerate it
+      # from Actions secrets/vars each run instead. Both are optional; unset
+      # ones resolve to empty and docker-compose.yml's own defaults take over.
+      # See docs/decisions/0004-generate-deploy-env-from-secrets.md
+      - name: Write .env
+        run: |
+          cat > .env <<EOF
+          MONGO_URI=${{ secrets.MONGO_URI }}
+          TUNNEL_TOKEN=${{ secrets.TUNNEL_TOKEN }}
+          EOF
       - name: Deploy
         run: docker compose up -d --build
