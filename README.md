@@ -291,7 +291,7 @@ docker compose logs -f
 
 | 容器     | 基础镜像               | 职责                                         |
 | -------- | ---------------------- | -------------------------------------------- |
-| `app`    | node:22-alpine         | 运行 Next.js standalone server（端口 3000）  |
+| `app`    | node:24-alpine         | 运行 Next.js standalone server（端口 3000）  |
 | `nginx`  | nginx:1.27-alpine      | 反向代理，永久缓存 `/_next/static/` 静态资源 |
 | `mongo`  | mongo:latest           | 数据库，数据持久化在 `mongo-data` volume 中  |
 | `tunnel` | cloudflare/cloudflared | 可选：Cloudflare Tunnel，暴露站点到公网      |
@@ -340,7 +340,7 @@ semgrep → quality → test → build ─┬─▶ docker   推送镜像到 GHC
 
 ```yaml
 env:
-  NODE_VERSION: '22' # 修改 Node 版本
+  NODE_VERSION: '24' # 修改 Node 版本
   REGISTRY: ghcr.io # 换成 docker.io 即切换到 Docker Hub
   IMAGE_NAME: ${{ github.repository }} # 或写死镜像名
 ```
@@ -618,7 +618,7 @@ docker compose logs -f
 
 | Container | Base image             | Role                                                   |
 | --------- | ---------------------- | ------------------------------------------------------ |
-| `app`     | node:22-alpine         | Runs the Next.js standalone server (port 3000)         |
+| `app`     | node:24-alpine         | Runs the Next.js standalone server (port 3000)         |
 | `nginx`   | nginx:1.27-alpine      | Reverse proxy; caches `/_next/static/` assets forever  |
 | `mongo`   | mongo:latest           | Database; data persisted in the `mongo-data` volume    |
 | `tunnel`  | cloudflare/cloudflared | Optional: Cloudflare Tunnel exposing the site publicly |
@@ -667,7 +667,7 @@ To customise CI, edit the `env` block at the top of `.github/workflows/ci.yml`:
 
 ```yaml
 env:
-  NODE_VERSION: '22' # change Node version
+  NODE_VERSION: '24' # change Node version
   REGISTRY: ghcr.io # switch to docker.io for Docker Hub
   IMAGE_NAME: ${{ github.repository }} # or hard-code the image name
 ```

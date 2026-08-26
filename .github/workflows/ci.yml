@@ -11,7 +11,7 @@ on:
 # REGISTRY      — container registry (ghcr.io · docker.io · <AWS ECR URL> …)
 # IMAGE_NAME    — defaults to ghcr.io/<owner>/<repo>; override if needed
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
