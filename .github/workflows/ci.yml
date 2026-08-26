@@ -38,6 +38,10 @@ jobs:
   quality:
     name: Quality (Lint · Format · Type-check)
     needs: semgrep
+    # semgrep is skipped (not failed) for Dependabot PRs (see its `if:` above).
+    # A skipped dependency doesn't satisfy the default success() gate, so
+    # without this override quality/test/build would all cascade-skip too
+    if: always() && (needs.semgrep.result == 'success' || needs.semgrep.result == 'skipped')
     runs-on: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
