@@ -20,7 +20,6 @@
 | 容器化    | Docker multi-stage build + Node.js standalone + Nginx 反向代理 + MongoDB + 可选 Cloudflare Tunnel |
 | CI/CD     | GitHub Actions（semgrep · lint · format · type-check · test · build）                             |
 | 依赖更新  | Dependabot（每周一自动 PR）                                                                       |
-| 模板同步  | template-sync（每周对比模板仓库自动开 PR）                                                        |
 | 安全扫描  | Semgrep（push/PR + 每周定时）                                                                     |
 
 ---
@@ -212,24 +211,7 @@ await connectDB()
 
 `connectDB()` 会跨请求 / 热重载复用同一个连接（见 `src/lib/server/db.ts`），不需要每次手动管理连接池。Model 建议放在 `src/lib/server/models/` 下（新建该目录）。
 
-### 第八步：选择 CI runner（重要）
-
-CI 的 quality / test / build / docker / deploy 五个 job 默认跑在 GitHub 托管的 `ubuntu-latest` 上，开箱即用，不用配置。如果你有自托管 runner（例如自己的 Mac），在 **Settings → Variables → Actions** 新建变量指过去：
-
-```
-Name:  CI_RUNNER
-Value: ["self-hosted", "macOS", "ARM64"]
-```
-
-值是 **JSON**：多标签写数组，单个 runner 写 `"my-runner"`（带引号）。变量不存在时就是 `ubuntu-latest`。
-
-> ⚠️ **只有私有仓库才会真正用上自托管 runner。** `ci.yml` 里的 `github.event.repository.private` 判断会在仓库公开时让 `CI_RUNNER` 失效，强制回落到 `ubuntu-latest`。这不是多余的保护：quality / test / build 由 `pull_request` 触发，执行的是 PR 分支里的代码（`npm ci` 的 postinstall 脚本、`next.config.ts`、测试文件都会被执行）。公开仓库任何人都能 fork 后提 PR，把这些 job 放到自托管 runner 上，等于把你那台机器的任意代码执行权交给任何陌生人。GitHub 官方同样只建议私有仓库使用自托管 runner。所以如果 CI 意外跑在了 `ubuntu-latest` 上，先检查仓库可见性。
-
-建议设成**仓库级**变量；用组织级变量的话记得限定 selected repositories，不要设成全组织生效——那会连公开的模板仓库一起覆盖到（虽然上面的保护会兜住，但意图是错的）。
-
-下一步的自动部署依赖这个变量：deploy job 假设 runner 本身就是目标服务器。
-
-### 第九步：启用 Docker 镜像推送（可选）
+### 第八步：启用 Docker 镜像推送（可选）
 
 CI 的 Docker stage 默认关闭。在 GitHub 仓库的 **Settings → Variables → Actions** 中新建变量即可开启：
 
@@ -243,7 +225,7 @@ Value: true
 - `ghcr.io/<owner>/<repo>:latest`
 - `ghcr.io/<owner>/<repo>:sha-xxxxxxx`
 
-### 第十步：启用自动部署（可选）
+### 第九步：启用自动部署（可选）
 
 CI 的 deploy stage 默认关闭。因为 self-hosted runner 本身就是部署目标服务器（见下方"CI 流水线"），开启后每次 push 到 `main` 都会在 runner 所在机器上执行 `docker compose up -d --build`，真实启停容器。在 GitHub 仓库的 **Settings → Variables → Actions** 中新建变量即可开启：
 
@@ -253,24 +235,6 @@ Value: true
 ```
 
 多个仓库共用同一台 self-hosted runner 时，只给需要自动部署的仓库开启这个变量。
-
-前提是已经按["第八步"](#第八步选择-ci-runner重要)设好 `CI_RUNNER`——否则 deploy job 会跑在 GitHub 托管的临时 VM 上，容器起完就随 VM 一起销毁，等于什么都没部署。
-
-### 第十一步：模板同步（可选，视仓库可见性而定）
-
-本仓库的基础设施更新后，用此模板创建的项目不会自动感到——`.github/workflows/template-sync.yml` 就是为此而生：它随模板一起被复制到新仓库，每周一自动对比 `We2-Tech/nextjs-template` 并开一个同步 PR（不会自动合并）。
-
-**同步范围只限基础设施**：模板仓库自己的 `.templatesyncignore` 把同步范围锁定在 `.github/`（CI workflow）、`Dockerfile`、`docker-compose.yml`、`.dockerignore`、`nginx.conf`。应用代码、文档、`README`、`package.json`、各种配置文件完全不在同步范围内，下游仓库对它们拥有完全所有权。这个排除列表只能由模板仓库设置，下游仓库自己放一份 `.templatesyncignore`不会生效。
-
-**冲突不是"正常呈现"，而是模板静默获胜**：底层用的合并策略是 `-X theirs`——如果你在同步范围内的文件（比如直接改过 `ci.yml`）里，和模板改的是同一行，PR 里看到的会是模板版本直接覆盖，**没有冲突标记、PR 里也不会提示这里发生过覆盖**。只有双方改的是同一文件里不同的行才会像正常合并一样两边都保留。如果你在同步范围内的文件上有本地改动，收到同步 PR 时建议逐行核对 diff，而不是默认"能开出 PR 就说明没有覆盖我的改动"。
-
-- 如果 `We2-Tech/nextjs-template` 是**公开**仓库：默认的 `GITHUB_TOKEN` 就够用，无需任何配置。
-- 如果它是**私有**仓库：需要在使用此模板创建的仓库中，新建一个有权读取模板仓库的 Personal Access Token，存为 secret：
-
-```
-Name:  TEMPLATE_SYNC_TOKEN
-Value: <PAT with read access to We2-Tech/nextjs-template>
-```
 
 ---
 
@@ -359,7 +323,7 @@ semgrep → quality → test → build ─┬─▶ docker   推送镜像到 GHC
 | **docker**  | 构建镜像并推送到 GHCR                      | 仅 push main（需开启变量） |
 | **deploy**  | 自托管 runner 上原地重建并重启容器         | 仅 push main（需开启变量） |
 
-**跑在哪台机器上**：除 `semgrep`（固定 GitHub-hosted，因为它用 `container:`，自托管 macOS runner 不支持）外，其余 stage 由 `CI_RUNNER` 变量决定，默认 `ubuntu-latest`；仓库为公开时该变量会被强制忽略。详见上方["第八步：选择 CI runner"](#第八步选择-ci-runner重要)。
+**跑在哪台机器上**：除 `semgrep`（固定 GitHub-hosted，因为它用 `container:`，自托管 macOS runner 不支持）外，其余 stage 都跑在自托管 runner 上（`ci.yml` 里 `runs-on: [self-hosted, macOS, ARM64]`）。这只在仓库保持**私有**时安全——quality / test / build 由 `pull_request` 触发，会执行 PR 分支里的代码，公开仓库任何人都能 fork 后提 PR 拿到这台机器的任意代码执行权。仓库若要公开，先把这五个 job 的 `runs-on` 改回 `ubuntu-latest`。
 
 **修改 CI 配置**：所有可调参数集中在 `.github/workflows/ci.yml` 顶部的 `env` 块：
 
@@ -393,12 +357,6 @@ env:
 | **typescript** | `typescript` · `@types/*`                     |
 | GitHub Actions | 工作流中的 actions 版本                       |
 
-### 模板同步
-
-用此模板创建的仓库会自带 `.github/workflows/template-sync.yml`，每周一定时对比本仓库并开 PR 同步上游改动，范围仅限基础设施（CI workflow、Docker、nginx 配置，见模板仓库的 `.templatesyncignore`），也可以在 Actions 页手动触发。详见上方["第十一步：模板同步"](#第十一步模板同步可选视仓库可见性而定)。
-
----
-
 ---
 
 <a name="english"></a>
@@ -421,7 +379,6 @@ A production-ready Next.js blueprint with App Router, SSR, i18n, MUI, and a full
 | Container          | Docker multi-stage build + Node.js standalone + Nginx reverse proxy + MongoDB + optional Cloudflare Tunnel |
 | CI/CD              | GitHub Actions (semgrep · lint · format · type-check · test · build)                                       |
 | Dependency updates | Dependabot (weekly grouped PRs)                                                                            |
-| Template sync      | template-sync (weekly PR diffing against the template repo)                                                |
 | Security           | Semgrep (push/PR + weekly schedule)                                                                        |
 
 ---
@@ -564,24 +521,7 @@ await connectDB()
 
 `connectDB()` reuses the same connection across requests and hot-reloads (see `src/lib/server/db.ts`) — no manual pool management needed. Put models under `src/lib/server/models/` (create that directory).
 
-### Step 8 — Choose the CI runner (important)
-
-The five CI jobs (quality / test / build / docker / deploy) run on GitHub-hosted `ubuntu-latest` by default — nothing to configure. If you have a self-hosted runner (your own Mac, say), point them at it with an Actions variable under **Settings → Variables → Actions**:
-
-```
-Name:  CI_RUNNER
-Value: ["self-hosted", "macOS", "ARM64"]
-```
-
-The value is **JSON**: an array for multiple labels, or `"my-runner"` (quoted) for a single one. Leave the variable unset and you get `ubuntu-latest`.
-
-> ⚠️ **A self-hosted runner is only ever used when the repo is private.** The `github.event.repository.private` check in `ci.yml` makes `CI_RUNNER` inert on a public repo and falls back to `ubuntu-latest`. That guard is not paranoia: quality / test / build trigger on `pull_request` and execute the PR branch's code — `npm ci` runs its `postinstall` scripts, `npm run build` executes `next.config.ts`, `npm run test:run` executes arbitrary test files. On a public repo anyone can fork it and open a PR, so routing those jobs to a self-hosted runner hands arbitrary code execution on that machine to any stranger. GitHub's own guidance is that self-hosted runners belong to private repos only. So if CI unexpectedly lands on `ubuntu-latest`, check the repo's visibility first.
-
-Prefer a **repository** variable. If you use an organization variable, scope it to selected repositories rather than the whole org — an org-wide value would also apply to the public template repo (the guard would neutralise it, but the intent would be wrong).
-
-The next step's automatic deploy depends on this variable: the deploy job assumes the runner _is_ the target server.
-
-### Step 9 — Enable Docker image push (optional)
+### Step 8 — Enable Docker image push (optional)
 
 The Docker stage in CI is disabled by default. Enable it by creating an Actions variable in **Settings → Variables → Actions**:
 
@@ -595,7 +535,7 @@ Once enabled, every push to `main` builds and pushes to GHCR:
 - `ghcr.io/<owner>/<repo>:latest`
 - `ghcr.io/<owner>/<repo>:sha-xxxxxxx`
 
-### Step 10 — Enable automatic deploy (optional)
+### Step 9 — Enable automatic deploy (optional)
 
 The deploy stage in CI is disabled by default. The self-hosted runner IS the deploy target (see "CI Pipeline" below), so enabling this makes every push to `main` run `docker compose up -d --build` on the runner's host — real containers, really started/stopped. Enable it by creating an Actions variable in **Settings → Variables → Actions**:
 
@@ -605,24 +545,6 @@ Value: true
 ```
 
 If multiple repos share the same self-hosted runner, only turn this on for the ones you actually want auto-deployed.
-
-This assumes `CI_RUNNER` is already set per ["Step 8"](#step-8--choose-the-ci-runner-important) — without it the deploy job runs on a throwaway GitHub-hosted VM, and the containers it starts are destroyed along with that VM.
-
-### Step 11 — Template sync (optional, depends on this template's visibility)
-
-Repos created from this template don't otherwise find out when its infrastructure updates. `.github/workflows/template-sync.yml` solves this — it ships with the template itself, so it's already in your repo. Every Monday it diffs against `We2-Tech/nextjs-template` and opens a PR with whatever changed upstream (nothing auto-merges).
-
-**Scope is infrastructure only**: the template repo's own `.templatesyncignore` restricts what syncs to `.github/` (CI workflows), `Dockerfile`, `docker-compose.yml`, `.dockerignore`, and `nginx.conf`. App code, docs, `README`, `package.json`, configs — everything else — is fully owned by the downstream repo and never touched. That exclude list can only be set in the template repo; a `.templatesyncignore` placed in a downstream repo has no effect.
-
-**Conflicts don't "show up" — the template silently wins them**: the merge strategy underneath is `-X theirs`, so if you've hand-edited a file that's in scope (say, `ci.yml` directly) and the template touches the same line, the PR just shows the template's version with no conflict marker and nothing flagging that an overwrite happened. Only edits to different lines of the same file merge normally, side by side. If you have local changes inside the synced scope, review the sync PR's diff line by line rather than assuming a clean-looking PR means nothing of yours got overwritten.
-
-- If `We2-Tech/nextjs-template` is **public**: the default `GITHUB_TOKEN` is enough, no setup needed.
-- If it's **private**: create a Personal Access Token with read access to the template repo and store it as a secret in your repo:
-
-```
-Name:  TEMPLATE_SYNC_TOKEN
-Value: <PAT with read access to We2-Tech/nextjs-template>
-```
 
 ---
 
@@ -711,7 +633,7 @@ semgrep → quality → test → build ─┬─▶ docker   push image to GHCR 
 | **docker**  | build & push to GHCR                               | push to main (opt-in var) |
 | **deploy**  | rebuild & recreate containers in place, on-runner  | push to main (opt-in var) |
 
-**Which machine they run on**: every stage except `semgrep` (pinned to GitHub-hosted — it uses `container:`, which self-hosted macOS runners don't support) is selected by the `CI_RUNNER` variable, defaulting to `ubuntu-latest`, and the variable is ignored outright while the repo is public. See ["Step 8 — Choose the CI runner"](#step-8--choose-the-ci-runner-important) above.
+**Which machine they run on**: every stage except `semgrep` (pinned to GitHub-hosted — it uses `container:`, which self-hosted macOS runners don't support) runs on a self-hosted runner (`runs-on: [self-hosted, macOS, ARM64]` in `ci.yml`). That's only safe while the repo stays **private** — quality / test / build trigger on `pull_request` and execute the PR branch's code, and on a public repo anyone could fork it and open a PR to get arbitrary code execution on that machine. If this repo ever goes public, switch those five jobs' `runs-on` back to `ubuntu-latest` first.
 
 To customise CI, edit the `env` block at the top of `.github/workflows/ci.yml`:
 
@@ -744,7 +666,3 @@ Runs every Monday at 09:00 (Asia/Shanghai). Dependencies are grouped to minimise
 | **testing**    | `vitest` · `@vitejs/*` · `@testing-library/*` |
 | **typescript** | `typescript` · `@types/*`                     |
 | GitHub Actions | action versions in workflow files             |
-
-### Template sync
-
-Repos created from this template ship with `.github/workflows/template-sync.yml`, which diffs against this repo every Monday and opens a PR to pull in upstream changes, scoped to infrastructure only (CI workflows, Docker, nginx config — see the template repo's `.templatesyncignore`). It can also be triggered manually from the Actions tab. See ["Step 11 — Template sync"](#step-11--template-sync-optional-depends-on-this-templates-visibility) above.
