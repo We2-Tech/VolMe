@@ -1,14 +1,26 @@
 name: Template sync
 
 # Keeps repos created from this template (via "Use this template") up to
-# date with upstream changes — CI workflows, AGENTS.md, docs, etc. This
-# workflow ships as part of the template itself, so new repos get it for
-# free and don't have to opt in.
+# date with upstream infrastructure changes. This workflow ships as part of
+# the template itself, so new repos get it for free and don't have to opt in.
 #
-# On each run it diffs against We2-Tech/nextjs-template and opens a PR with
-# whatever changed upstream. Nothing merges automatically — review the PR
-# like any other; a file this repo has diverged from upstream on will show
-# up as a normal merge conflict for you to resolve there.
+# Scope is deliberately narrow: We2-Tech/nextjs-template's own
+# .templatesyncignore restricts what actually syncs to CI pipelines
+# (.github/), Docker (Dockerfile, docker-compose.yml, .dockerignore) and
+# nginx.conf. App code, docs, README, package.json, configs — everything
+# else — is owned outright by the downstream repo and never touched, by
+# design. The ignore file lives in the template repo only; it can't be
+# overridden per downstream repo (unsupported by the action).
+#
+# On each run it opens a PR with whatever changed upstream within that
+# scope. Nothing merges automatically — review the PR like any other. BUT:
+# the underlying merge strategy is `-X theirs`, so on a line BOTH the
+# template and this repo have touched, the template's version wins
+# SILENTLY — no conflict markers, nothing in the PR flags it happened. Only
+# non-overlapping edits to the same file merge normally. If you've hand-
+# edited anything inside the synced scope (e.g. tweaked ci.yml directly),
+# diff the PR carefully rather than assuming a clean PR means nothing of
+# yours was overwritten.
 #
 # If We2-Tech/nextjs-template is private, add a Personal Access Token with
 # read access to it as a secret named TEMPLATE_SYNC_TOKEN in this repo's
@@ -32,6 +44,15 @@ jobs:
     # no-op that would otherwise open a self-referential PR every run.
     if: github.repository != 'We2-Tech/nextjs-template'
     steps:
+      # actions-template-sync runs git directly in the workspace and merges
+      # upstream commits into a branch here, so the repo must already be
+      # checked out with its full history. Without this step the action fails
+      # immediately with "fatal: not in a git directory"; with a shallow
+      # clone (the checkout default) the merge against upstream fails instead.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
       - uses: AndreasAugustin/actions-template-sync@8a0f668b83c32a0f673353086d74f12b8853d4f5 # v2.5.3
         with:
           source_gh_token: ${{ secrets.TEMPLATE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}

@@ -1,0 +1,27 @@
+# Scope template-sync to infrastructure only.
+#
+# Downstream repos own their app code outright — src/, package.json, docs,
+# README, configs, everything. This file makes template-sync touch nothing
+# but CI pipelines, Docker, and the nginx reverse proxy, so a sync run can
+# never silently clobber a downstream repo's own code.
+#
+# This file lives in the TEMPLATE repo only — actions-template-sync reads it
+# from the source side, not the target. A copy inside a downstream repo is a
+# no-op (unsupported by the action) and gets overwritten back to match this
+# one on every sync anyway.
+#
+# Syntax: exclude everything by default (`*`), then re-include the specific
+# infra paths via git pathspec negation (`:!`). See
+# https://github.com/AndreasAugustin/actions-template-sync#ignore-files-and-folders-while-syncing
+*
+
+# CI pipelines (workflows + dependabot config)
+:!.github
+:!.github/**
+
+# Docker
+:!Dockerfile
+:!.dockerignore
+
+# Reverse proxy
+:!nginx.conf

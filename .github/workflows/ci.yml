@@ -6,6 +6,22 @@ on:
   pull_request:
     branches: [main]
 
+# ── Where the jobs run ─────────────────────────────────────────────────────────
+# This file is shared by every repo created from this template, so the runner
+# is chosen by an Actions variable rather than hardcoded:
+#
+#   CI_RUNNER unset  → GitHub-hosted `ubuntu-latest` (the default)
+#   CI_RUNNER set    → its value, as JSON. Settings → Variables → Actions:
+#                        Name:  CI_RUNNER
+#                        Value: ["self-hosted", "macOS", "ARM64"]
+#
+# The `github.event.repository.private` guard is deliberate and must not be
+# removed: a self-hosted runner is only ever used when the repo is PRIVATE.
+# On a public repo anyone can fork it and open a PR, and these jobs execute
+# that PR's code (`npm ci` lifecycle scripts, `next.config.ts`, test files) —
+# on a public repo that is arbitrary code execution on your own machine. The
+# guard makes CI_RUNNER inert if a public repo ever sets it by mistake.
+#
 # ── Configurable variables ─────────────────────────────────────────────────────
 # NODE_VERSION  — Node.js version used across all jobs
 # REGISTRY      — container registry (ghcr.io · docker.io · <AWS ECR URL> …)
@@ -42,7 +58,7 @@ jobs:
     # A skipped dependency doesn't satisfy the default success() gate, so
     # without this override quality/test/build would all cascade-skip too
     if: always() && (needs.semgrep.result == 'success' || needs.semgrep.result == 'skipped')
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ${{ fromJSON((github.event.repository.private && vars.CI_RUNNER) || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -63,7 +79,7 @@ jobs:
   test:
     name: Test
     needs: quality
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ${{ fromJSON((github.event.repository.private && vars.CI_RUNNER) || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -82,7 +98,7 @@ jobs:
   build:
     name: Build
     needs: test
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ${{ fromJSON((github.event.repository.private && vars.CI_RUNNER) || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -113,7 +129,7 @@ jobs:
     name: Docker · Push to GHCR
     needs: build
     if: vars.ENABLE_DOCKER_PUSH == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ${{ fromJSON((github.event.repository.private && vars.CI_RUNNER) || '"ubuntu-latest"') }}
     permissions:
       contents: read
       packages: write # required to push to GHCR
@@ -158,19 +174,16 @@ jobs:
   # from a push to main. To enable:
   #   Go to Settings → Variables → Actions → New variable
   #   Name: ENABLE_DEPLOY  Value: true
+  # This one only makes sense together with CI_RUNNER (see the top of the
+  # file) — the runner is the server being deployed to, so deploying onto a
+  # throwaway GitHub-hosted VM does nothing.
   deploy:
     name: Deploy
     needs: build
     if: vars.ENABLE_DEPLOY == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: ${{ fromJSON((github.event.repository.private && vars.CI_RUNNER) || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # docker-compose.yml's `app` service requires a `.env` file (env_file:).
-      # actions/checkout wipes untracked files (incl. .env) on every run, so a
-      # manually-placed .env on the runner wouldn't survive — regenerate it
-      # from Actions secrets/vars each run instead. Both are optional; unset
-      # ones resolve to empty and docker-compose.yml's own defaults take over.
-      # See docs/decisions/0004-generate-deploy-env-from-secrets.md
       - name: Write .env
         run: |
           cat > .env <<EOF
