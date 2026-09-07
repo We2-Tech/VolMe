@@ -9,6 +9,7 @@ Work that was intentionally deferred, recorded with enough context that whoever 
 
 ## Index
 
-| #                                                 | Title                                                 | Area        |
-| ------------------------------------------------- | ----------------------------------------------------- | ----------- |
-| [0001](0001-incomplete-de-and-zh-translations.md) | Fill the gaps in the German and Chinese message files | `messages/` |
+| #                                                 | Title                                                 | Area                     |
+| ------------------------------------------------- | ----------------------------------------------------- | ------------------------ |
+| [0001](0001-incomplete-de-and-zh-translations.md) | Fill the gaps in the German and Chinese message files | `messages/`              |
+| [0002](0002-monetisation-when-cold-start-ends.md) | Revisit monetisation once cold start ends             | product / business model |
