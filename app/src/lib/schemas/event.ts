@@ -42,9 +42,14 @@ export const EventSchema = z.object({
 
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
-  /** For events that repeat; the UI shows the series, not each occurrence. */
-  isRegular: z.boolean().default(false),
-  isRegularUntil: z.coerce.date().nullable().default(null),
+
+  /** Set when this event is one occurrence of a repeating series; `null` for a
+   *  one-off. Everything else on the document behaves identically either way —
+   *  docs/decisions/0009-recurring-events-as-series-plus-occurrences.md. */
+  series: ObjectIdSchema.nullable().default(null),
+  /** A single occurrence called off. The event stays visible, so people who were
+   *  already accepted can see that this date is cancelled. */
+  isCancelled: z.boolean().default(false),
 
   address: AddressSchema,
   location: GeoPointSchema.optional(),
@@ -77,8 +82,6 @@ export const EventFormSchema = EventSchema.pick({
   isDraft: true,
   startDate: true,
   endDate: true,
-  isRegular: true,
-  isRegularUntil: true,
   address: true,
   isRemote: true,
   peopleNeeded: true,

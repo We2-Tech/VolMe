@@ -16,5 +16,5 @@
 
 export { UserModel } from './user'
 export { OrganizationModel, MembershipModel, InvitationModel } from './organization'
-export { EventModel, ReviewModel } from './event'
+export { EventModel, EventSeriesModel, ReviewModel } from './event'
 export { ApplicationModel, DocumentModel } from './application'

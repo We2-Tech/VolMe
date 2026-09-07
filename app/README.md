@@ -71,17 +71,20 @@ npm run dev
 │   │   ├── request.ts       # 服务端 getTranslations 配置
 │   │   └── routing.ts       # 支持的 locale 列表与默认 locale
 │   ├── lib/
+│   │   ├── recurrence.ts    # 重复规则展开（按 IANA 时区算，纯函数）
 │   │   ├── schemas/         # Zod：领域模型的唯一事实来源，TS 类型由 z.infer 派生
 │   │   │   ├── common.ts    # ObjectId · Address · GeoPoint · Pagination · ApiResponse
 │   │   │   ├── enums.ts     # 角色 · 活动分类 · 语言 · 申请状态
 │   │   │   ├── user.ts      # User · 资料表单 · session 载荷
 │   │   │   ├── organization.ts # Organization · Membership · Invitation
+│   │   │   ├── series.ts    # EventSeries · 重复规则
 │   │   │   ├── event.ts     # Event · Review · 列表筛选参数
 │   │   │   └── application.ts  # Application · 留言 · Document
 │   │   └── server/
 │   │       ├── db.ts        # Mongoose 连接封装（读取 MONGO_URI，跨热重载缓存连接）
 │   │       ├── mongo-client.ts # Auth.js adapter 用的原生 MongoClient
 │   │       ├── authz.ts     # docs/roles.md 里那些判断的代码实现
+│   │       ├── services/    # 跨模型的服务（系列展开与滚动补齐）
 │   │       └── models/      # Mongoose 模型，与 schemas/ 一一对应
 │   ├── test/
 │   │   └── setup.ts         # Testing Library 全局配置

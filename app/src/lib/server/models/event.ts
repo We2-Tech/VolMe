@@ -24,8 +24,11 @@ const EventSchema = new Schema(
 
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    isRegular: { type: Boolean, default: false },
-    isRegularUntil: { type: Date, default: null },
+
+    // One occurrence of a repeating series, or null for a one-off. Nothing else on
+    // the document changes — docs/decisions/0009.
+    series: { type: Schema.Types.ObjectId, ref: 'EventSeries', default: null, index: true },
+    isCancelled: { type: Boolean, default: false },
 
     address: { type: AddressSchema },
     location: { ...geoPointField },
@@ -73,5 +76,50 @@ const ReviewSchema = new Schema(
 // One review per person per event.
 ReviewSchema.index({ event: 1, author: 1 }, { unique: true })
 
+/**
+ * A repeating event: the rule plus the content its occurrences share. The
+ * occurrences themselves are ordinary Event documents pointing back here.
+ */
+const EventSeriesSchema = new Schema(
+  {
+    organization: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
+      required: true,
+      index: true,
+    },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    rule: {
+      type: {
+        freq: { type: String, enum: ['WEEKLY', 'MONTHLY'], required: true },
+        interval: { type: Number, default: 1 },
+        byWeekday: { type: [Number], default: [] },
+        bySetPos: { type: Number },
+        startTime: { type: String, required: true },
+        durationMinutes: { type: Number, required: true },
+        timezone: { type: String, required: true },
+        until: { type: Date },
+        count: { type: Number },
+      },
+      _id: false,
+      required: true,
+    },
+    seriesStart: { type: String, required: true },
+    // How far occurrences have been materialised; the top-up runs when a read
+    // comes close to it.
+    generatedUntil: { type: Date, default: null, index: true },
+  },
+  { timestamps: true },
+)
+
+// One occurrence per series per instant — the guard that makes generation
+// idempotent, so a concurrent top-up cannot double-create a date.
+EventSchema.index(
+  { series: 1, startDate: 1 },
+  { unique: true, partialFilterExpression: { series: { $type: 'objectId' } } },
+)
+
+export const EventSeriesModel =
+  mongoose.models.EventSeries ?? mongoose.model('EventSeries', EventSeriesSchema)
 export const EventModel = mongoose.models.Event ?? mongoose.model('Event', EventSchema)
 export const ReviewModel = mongoose.models.Review ?? mongoose.model('Review', ReviewSchema)

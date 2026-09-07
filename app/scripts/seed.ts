@@ -17,7 +17,8 @@
 import mongoose from 'mongoose'
 import { UserModel } from '../src/lib/server/models/user.ts'
 import { OrganizationModel, MembershipModel } from '../src/lib/server/models/organization.ts'
-import { EventModel, ReviewModel } from '../src/lib/server/models/event.ts'
+import { EventModel, EventSeriesModel, ReviewModel } from '../src/lib/server/models/event.ts'
+import { expandOccurrences } from '../src/lib/recurrence.ts'
 import { ApplicationModel } from '../src/lib/server/models/application.ts'
 
 const uri = process.env.MONGO_URI
@@ -60,6 +61,7 @@ async function main() {
     OrganizationModel.deleteMany({}),
     MembershipModel.deleteMany({}),
     EventModel.deleteMany({}),
+    EventSeriesModel.deleteMany({}),
     ReviewModel.deleteMany({}),
     ApplicationModel.deleteMany({}),
   ])
@@ -219,6 +221,52 @@ async function main() {
     },
   ])
 
+  // --- a repeating series -------------------------------------------------
+  // Every Saturday at 10:00 Europe/Berlin. The series holds the rule; each date is
+  // an ordinary Event pointing back at it, so applications, capacity, attendance
+  // and reviews all stay per-date (docs/decisions/0009).
+  const rule = {
+    freq: 'WEEKLY' as const,
+    interval: 1,
+    byWeekday: [6], // Saturday
+    startTime: '10:00',
+    durationMinutes: 240,
+    timezone: 'Europe/Berlin',
+  }
+  const seriesStart = new Date(Date.now() + 3 * day).toISOString().slice(0, 10)
+
+  const series = await EventSeriesModel.create({
+    organization: tafel._id,
+    createdBy: anna._id,
+    rule,
+    seriesStart,
+    generatedUntil: null,
+  })
+
+  const horizon = new Date(Date.now() + 90 * day)
+  const starts = expandOccurrences(rule, { seriesStart, until: horizon, max: 60 })
+
+  await EventModel.create(
+    starts.map((start) => ({
+      organization: tafel._id,
+      createdBy: anna._id,
+      series: series._id,
+      title: 'Kleiderkammer — Samstagsdienst',
+      description:
+        'Wiederkehrender Samstagsdienst in der Kleiderkammer: Spenden sortieren, Regale auffüllen, Besucher*innen beraten.',
+      category: 'CS',
+      languages: ['de'],
+      isDraft: false,
+      publishedAt: new Date(),
+      startDate: start,
+      endDate: new Date(start.getTime() + rule.durationMinutes * 60_000),
+      address: { ...MUNICH, street: 'Kistlerhofstraße', houseNumber: '2' },
+      location: MUNICH_POINT,
+      peopleNeeded: 6,
+    })),
+  )
+  await EventSeriesModel.updateOne({ _id: series._id }, { generatedUntil: horizon })
+
   // --- applications -------------------------------------------------------
   await ApplicationModel.create([
     {
@@ -281,6 +329,8 @@ async function main() {
     organizations: await OrganizationModel.countDocuments(),
     memberships: await MembershipModel.countDocuments(),
     events: await EventModel.countDocuments(),
+    series: await EventSeriesModel.countDocuments(),
+    seriesOccurrences: await EventModel.countDocuments({ series: { $ne: null } }),
     applications: await ApplicationModel.countDocuments(),
     reviews: await ReviewModel.countDocuments(),
   }
