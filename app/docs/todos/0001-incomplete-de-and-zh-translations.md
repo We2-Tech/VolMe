@@ -5,15 +5,15 @@ Area: `messages/de.json`, `messages/zh-CN.json`
 
 ## What needs doing
 
-`messages/en.json` has 337 keys. The other two locales are incomplete, inherited
+`messages/en.json` has 336 keys. The other two locales are incomplete, inherited
 straight from v1:
 
-- **`de.json`** — 297 keys: 50 missing versus English, 10 extra. The missing block
+- **`de.json`** — 296 keys: 50 missing versus English, 10 extra. The missing block
   is mostly the whole `events.*` category-label group (`events.AC`, `events.AW`,
   `events.CI`, `events.CS`, `events.DR`, `events.EC`, `events.EL`, `events.HF`,
   `events.HH`, `events.HM`, `events.HR`, `events.IV`, …). The 10 extras are under
   `sideDrawer`, which no other locale has.
-- **`zh-CN.json`** — 322 keys: 15 missing, no extras. Missing: `navBar.about`,
+- **`zh-CN.json`** — 321 keys: 15 missing, no extras. Missing: `navBar.about`,
   `navBar.application`, `navBar.contacts`, `navBar.features`, `navBar.home`,
   `features.bCTitle1-3`, `features.bCDescription1-3`, `features.c`, and a few more.
 

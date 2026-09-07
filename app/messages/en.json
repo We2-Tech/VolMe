@@ -40,7 +40,6 @@
     "testimonials": "Testimonials",
     "pricing": "Pricing",
     "contacts": "Contacts",
-    "wishlist": "Wishlist",
     "myProfile": "My Profile",
     "myEvents": "My Events",
     "logOut": "Log out",
@@ -182,20 +181,6 @@
     "item1_description3-7": "priority E-Mail support from VolMe",
     "item4_title": "Pay As You Go Plan"
   },
-  "wishlistItemCard": {
-    "organizer": "Organizer",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "location": "Location",
-    "toEvent": "To Event",
-    "applyNow": "Apply Now"
-  },
-  "wishlist": {
-    "myWishlist": "MY WISHLIST",
-    "enterEventName": "Enter event name",
-    "backToAll": "Back To All Events",
-    "clearWishlist": "Clear Wishlist"
-  },
   "applicationPage": {
     "applyAs": "Apply as",
     "uploadFiles": "Upload Files",
@@ -304,8 +289,6 @@
     "requiredDocuments": "Required Documents: ",
     "workingLanguages": "Working Languages: ",
     "aboutOrganizer": "About the Organizer",
-    "addToWishList": "Add to Wish List",
-    "removeFromWishlist": "Remove from Wishlist",
     "applyNow": "Apply Now",
     "writeReview": "Write a Review",
     "submitReview": "Submit Review",

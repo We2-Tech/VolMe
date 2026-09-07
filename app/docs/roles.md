@@ -79,7 +79,6 @@ the object in question.
 | Sign in (Google, or an emailed link)       |     ✓     |            —            |   —    |   —   |   —   |
 | Apply to an event                          |     —     |            ✓            |   ✓    |   ✓   |   ✓   |
 | Withdraw own application                   |     —     |            ✓            |   ✓    |   ✓   |   ✓   |
-| Wishlist an event                          |     —     |            ✓            |   ✓    |   ✓   |   ✓   |
 | Review an event they attended              |     —     |            ✓            |   ✓    |   ✓   |   ✓   |
 | Edit own profile, upload own documents     |     —     |          self           |  self  | self  | self  |
 | Create an organization                     |     —     | ✓ (becomes its `OWNER`) |   ✓    |   ✓   |   ✓   |

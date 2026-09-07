@@ -32,7 +32,6 @@
     "signup": "注册",
     "events": "所有志愿活动",
     "contact": "联系我们",
-    "wishlist": "心愿单",
     "myProfile": "我的档案",
     "myEvents": "我的活动",
     "logOut": "注销",
@@ -174,20 +173,6 @@
     "item1_description3-7": "VolMe提供优先邮件支持",
     "item4_title": "即用即走计划"
   },
-  "wishlistItemCard": {
-    "organizer": "Organizer",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "location": "Location",
-    "toEvent": "To Event",
-    "applyNow": "Apply Now"
-  },
-  "wishlist": {
-    "myWishlist": "我的愿望单",
-    "enterEventName": "输入活动名称",
-    "backToAll": "返回所有活动",
-    "clearWishlist": "清空愿望单"
-  },
   "applicationPage": {
     "applyAs": "Apply as",
     "uploadFiles": "Upload Files",
@@ -296,8 +281,6 @@
     "requiredDocuments": "Required Documents: ",
     "workingLanguages": "Working Languages: ",
     "aboutOrganizer": "About the Organizer",
-    "addToWishList": "Add to Wish List",
-    "removeFromWishlist": "Remove from Wishlist",
     "applyNow": "Apply Now",
     "writeReview": "Write a Review",
     "submitReview": "Submit Review",

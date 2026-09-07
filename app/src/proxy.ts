@@ -21,7 +21,6 @@ const { auth } = NextAuth(authConfig)
  */
 const PROTECTED_PREFIXES = [
   '/profile',
-  '/wishlist',
   '/my-events',
   '/applications',
   '/organizations/new',

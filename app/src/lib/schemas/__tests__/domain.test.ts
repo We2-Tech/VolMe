@@ -190,11 +190,10 @@ describe('UserSchema', () => {
     updatedAt: new Date(),
   }
 
-  it('defaults role-adjacent collections to empty and isBlocked to false', () => {
+  it('defaults its list fields to empty and isBlocked to false', () => {
     const r = UserSchema.safeParse(base)
     expect(r.success).toBe(true)
     if (r.success) {
-      expect(r.data.wishlist).toEqual([])
       expect(r.data.languages).toEqual([])
       expect(r.data.skills).toEqual([])
       expect(r.data.isBlocked).toBe(false)

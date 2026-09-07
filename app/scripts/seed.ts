@@ -321,9 +321,6 @@ async function main() {
   ])
   await EventModel.updateOne({ _id: pastEvent._id }, { rating: 5, reviewCount: 1 })
 
-  // --- wishlist -----------------------------------------------------------
-  await UserModel.updateOne({ _id: david._id }, { wishlist: [isar._id] })
-
   const counts = {
     users: await UserModel.countDocuments(),
     organizations: await OrganizationModel.countDocuments(),

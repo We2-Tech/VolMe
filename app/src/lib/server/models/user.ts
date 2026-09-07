@@ -27,10 +27,6 @@ const UserSchema = new Schema(
     skills: { type: [String], default: [] },
     address: { type: AddressSchema },
 
-    // Embedded rather than its own collection —
-    // docs/decisions/0007-embed-the-wishlist-on-the-user.md
-    wishlist: { type: [{ type: Schema.Types.ObjectId, ref: 'Event' }], default: [] },
-
     isBlocked: { type: Boolean, default: false },
   },
   { timestamps: true },

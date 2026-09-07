@@ -1,6 +1,6 @@
 # 0007 — Embed the wishlist on the user; keep documents in their own collection
 
-Status: Accepted
+Status: Partially superseded by 0010 — the wishlist is gone; the Document half stands
 Date: 2026-09-07
 
 ## Context

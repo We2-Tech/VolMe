@@ -39,7 +39,6 @@
     "testimonials": "Erfahrungsberichte",
     "pricing": "Preise",
     "contacts": "Kontakte",
-    "wishlist": "Wunschliste",
     "myProfile": "Mein Profil",
     "myEvents": "Meine Veranstaltungen",
     "logOut": "Abmelden",
@@ -165,20 +164,6 @@
     "onOrderApproveNo": "Entschuldigung, etwas ist schief gelaufen!",
     "onSubscriptionApprove": "Sie haben erfolgreich abonniert"
   },
-  "wishlistItemCard": {
-    "organizer": "Organisator",
-    "startDate": "Startdatum",
-    "endDate": "Enddatum",
-    "location": "Ort",
-    "toEvent": "Zur Veranstaltung",
-    "applyNow": "Jetzt bewerben"
-  },
-  "wishlist": {
-    "myWishlist": "MEINE WUNSCHLISTE",
-    "enterEventName": "Veranstaltungsname eingeben",
-    "backToAll": "Zurück zu allen Veranstaltungen",
-    "clearWishlist": "Wunschliste leeren"
-  },
   "applicationPage": {
     "applyAs": "Bewerben als",
     "uploadFiles": "Dateien hochladen",
@@ -255,8 +240,6 @@
     "requiredDocuments": "Erforderliche Dokumenten: ",
     "workingLanguages": "Arbeitssprachen: ",
     "aboutOrganizer": "Über den Organisator",
-    "addToWishList": "Zur Wunschliste hinzufügen",
-    "removeFromWishlist": "Von der Wunschliste entfernen",
     "applyNow": "Jetzt bewerben",
     "writeReview": "Eine Bewertung schreiben",
     "submitReview": "Bewertung abgeben",

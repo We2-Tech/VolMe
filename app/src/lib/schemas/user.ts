@@ -31,10 +31,6 @@ export const UserSchema = z.object({
   skills: z.array(z.string().min(1).max(60)).max(30).default([]),
   address: AddressSchema.partial({ city: true, country: true }).optional(),
 
-  /** Events this user has wishlisted. Embedded rather than a join collection —
-   *  see docs/decisions/0007-embed-the-wishlist-on-the-user.md. */
-  wishlist: z.array(ObjectIdSchema).default([]),
-
   /** Set by an ADMIN. A blocked user can sign in but cannot write anything. */
   isBlocked: z.boolean().default(false),
 
