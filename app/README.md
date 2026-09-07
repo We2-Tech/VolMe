@@ -17,6 +17,7 @@ VolMe 是一个志愿活动平台，连接活动组织者与志愿者：活动�
 | 框架      | Next.js 16 + TypeScript 5 + React 19                                                              |
 | UI 组件库 | Material UI 9 + 暗黑模式（CSS Variables）+ MUI X（DataGrid · Charts · DatePickers · TreeView）    |
 | 国际化    | next-intl v4（App Router · 自动语言检测 · 服务端 + 客户端翻译）                                   |
+| 认证      | Auth.js v5（无密码：Google OAuth + 邮件魔法链接）                                                 |
 | 数据校验  | Zod v4                                                                                            |
 | 数据库    | MongoDB + Mongoose（连接封装在 `src/lib/server/db.ts`）                                           |
 | 测试      | Vitest + React Testing Library                                                                    |
@@ -63,6 +64,8 @@ npm run dev
 │   │   └── globals.css
 │   ├── components/          # 客户端组件
 │   │   └── LocaleSwitcher.tsx
+│   ├── auth.ts              # Auth.js 配置（adapter + providers，仅服务端）
+│   ├── auth.config.ts       # 可在 proxy 中运行的那半份配置（不碰数据库）
 │   ├── i18n/
 │   │   ├── navigation.ts    # locale-aware 的 Link / useRouter / usePathname
 │   │   ├── request.ts       # 服务端 getTranslations 配置
@@ -77,6 +80,8 @@ npm run dev
 │   │   │   └── application.ts  # Application · 留言 · Document
 │   │   └── server/
 │   │       ├── db.ts        # Mongoose 连接封装（读取 MONGO_URI，跨热重载缓存连接）
+│   │       ├── mongo-client.ts # Auth.js adapter 用的原生 MongoClient
+│   │       ├── authz.ts     # docs/roles.md 里那些判断的代码实现
 │   │       └── models/      # Mongoose 模型，与 schemas/ 一一对应
 │   ├── test/
 │   │   └── setup.ts         # Testing Library 全局配置
@@ -156,6 +161,20 @@ import { Link, useRouter } from '@/i18n/navigation'
 const router = useRouter()
 router.push('/dashboard')
 ```
+
+### 认证
+
+VolMe 没有密码：要么用 Google 登录，要么收一封带一次性链接的邮件（见
+[`docs/decisions/0008`](docs/decisions/0008-passwordless-authentication.md)）。
+
+- 配置分两份：`src/auth.ts` 带 adapter 和 providers，只能在服务端用；`src/auth.config.ts`
+  不碰数据库，所以 `src/proxy.ts` 也能加载它。往 proxy 能到的地方引入数据库会直接把它拖垮。
+- session 用 JWT，不用数据库 session —— 这样 proxy 不查库就能判断有没有登录。adapter
+  仍然拥有 `users` / `accounts` / `verification_tokens` 三个 collection，其中 `users`
+  和 Mongoose 的 `UserModel` 是同一个。
+- 本地开发不配 `AUTH_RESEND_KEY` 时，登录链接会打印在服务端控制台里，不会真的发信。
+- 谁能做什么一律以 [`docs/roles.md`](docs/roles.md) 为准，判断逻辑写在
+  `src/lib/server/authz.ts`，不要在调用处自己拼查询。
 
 ### 定义 Zod Schema
 
@@ -384,6 +403,7 @@ This directory is the VolMe rewrite (v2), built on [We2-Tech/nextjs-template](ht
 | Framework          | Next.js 16 + TypeScript 5 + React 19                                                                       |
 | UI                 | Material UI 9 + dark mode (CSS Variables) + MUI X (DataGrid · Charts · DatePickers · TreeView)             |
 | i18n               | next-intl v4 (App Router · auto locale detection · server + client)                                        |
+| Auth               | Auth.js v5 (passwordless: Google OAuth + emailed magic links)                                              |
 | Validation         | Zod v4                                                                                                     |
 | Database           | MongoDB + Mongoose (connection wrapper in `src/lib/server/db.ts`)                                          |
 | Testing            | Vitest + React Testing Library                                                                             |
@@ -468,6 +488,23 @@ import { Link, useRouter } from '@/i18n/navigation'
 const router = useRouter()
 router.push('/dashboard')
 ```
+
+### Authentication
+
+VolMe has no passwords: sign in with Google, or with a one-time link sent by email
+(see [`docs/decisions/0008`](docs/decisions/0008-passwordless-authentication.md)).
+
+- The config is split. `src/auth.ts` carries the adapter and the providers and is
+  server-only; `src/auth.config.ts` touches no database, so `src/proxy.ts` can load
+  it. Importing the database into anything the proxy reaches will drag it down.
+- Sessions are JWTs rather than database sessions, so the proxy can tell whether a
+  request is signed in without a query. The adapter still owns `users`, `accounts`
+  and `verification_tokens` — and its `users` is the same collection as Mongoose's
+  `UserModel`.
+- With no `AUTH_RESEND_KEY` in development, the sign-in link is printed to the server
+  console instead of emailed.
+- Who may do what is settled by [`docs/roles.md`](docs/roles.md); the checks live in
+  `src/lib/server/authz.ts`. Don't hand-roll a membership query at the call site.
 
 ### Define Zod schemas
 

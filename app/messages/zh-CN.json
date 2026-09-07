@@ -7,6 +7,20 @@
     "description": "你要找的页面不存在，或者已经被移动了。",
     "backHome": "返回首页"
   },
+  "auth": {
+    "signInTitle": "登录 VolMe",
+    "signInSubtitle": "寻找身边的志愿活动，或为你的组织发布活动。",
+    "continueWithGoogle": "使用 Google 继续",
+    "or": "或",
+    "emailLabel": "邮箱地址",
+    "sendMagicLink": "把登录链接发到我邮箱",
+    "noPasswordNote": "VolMe 没有密码。我们会给你发一个链接，点开即登录。",
+    "checkEmailTitle": "去邮箱查收",
+    "checkEmailBody": "登录链接已发送，24 小时内有效，只能使用一次。",
+    "error": "这个登录链接失效了，请在下面重新获取。",
+    "signIn": "登录",
+    "signOut": "退出登录"
+  },
   "PersistLogin": {
     "noAccess": "对不起，你没有权限访问该页面",
     "notLoggedIn": "请登录来访问页面",

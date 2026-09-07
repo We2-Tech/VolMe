@@ -7,6 +7,20 @@
     "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
     "backHome": "Zurück zur Startseite"
   },
+  "auth": {
+    "signInTitle": "Bei VolMe anmelden",
+    "signInSubtitle": "Finde Engagement in deiner Nähe oder veröffentliche eine Aktion für deine Organisation.",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "or": "oder",
+    "emailLabel": "E-Mail-Adresse",
+    "sendMagicLink": "Anmeldelink zusenden",
+    "noPasswordNote": "VolMe hat keine Passwörter. Wir schicken dir einen Link, der dich anmeldet.",
+    "checkEmailTitle": "Schau in dein Postfach",
+    "checkEmailBody": "Wir haben dir einen Anmeldelink geschickt. Er gilt 24 Stunden und nur einmal.",
+    "error": "Dieser Anmeldelink hat nicht funktioniert. Fordere unten einen neuen an.",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden"
+  },
   "PersistLogin": {
     "noAccess": "Sie haben keinen Zugriff auf diese Seite!",
     "notLoggedIn": "Sie sind nicht eingeloggt, bitte loggen Sie sich ein",

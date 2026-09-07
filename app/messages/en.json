@@ -7,6 +7,20 @@
     "description": "The page you're looking for doesn't exist or has been moved.",
     "backHome": "Back to Home"
   },
+  "auth": {
+    "signInTitle": "Sign in to VolMe",
+    "signInSubtitle": "Find volunteering near you, or publish an event for your organisation.",
+    "continueWithGoogle": "Continue with Google",
+    "or": "or",
+    "emailLabel": "Email address",
+    "sendMagicLink": "Email me a sign-in link",
+    "noPasswordNote": "VolMe has no passwords. We email you a link that signs you in.",
+    "checkEmailTitle": "Check your email",
+    "checkEmailBody": "We sent you a sign-in link. It expires in 24 hours and works once.",
+    "error": "That sign-in link didn't work. Request a new one below.",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
   "PersistLogin": {
     "noAccess": "You don't have access to this page!",
     "notLoggedIn": "You are not logged in, please log in",

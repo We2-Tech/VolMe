@@ -76,7 +76,7 @@ the object in question.
 | ------------------------------------------ | :-------: | :---------------------: | :----: | :---: | :---: |
 | Browse and search events                   |     ✓     |            ✓            |   ✓    |   ✓   |   ✓   |
 | View an event, an organization profile     |     ✓     |            ✓            |   ✓    |   ✓   |   ✓   |
-| Register / sign in                         |     ✓     |            —            |   —    |   —   |   —   |
+| Sign in (Google, or an emailed link)       |     ✓     |            —            |   —    |   —   |   —   |
 | Apply to an event                          |     —     |            ✓            |   ✓    |   ✓   |   ✓   |
 | Withdraw own application                   |     —     |            ✓            |   ✓    |   ✓   |   ✓   |
 | Wishlist an event                          |     —     |            ✓            |   ✓    |   ✓   |   ✓   |
@@ -111,9 +111,14 @@ event attributed to someone else. Take the actor from the session, always.
 - Membership is **not** in the session — a user can belong to many organizations and
   membership changes must take effect immediately, not at next sign-in. Query it per
   request, in the Server Component / Server Action / Route Handler that needs it.
-- `src/proxy.ts` gates on authentication only. Object-level checks belong next to
-  the data access, not in the proxy — the proxy cannot know which organization owns
-  the event in the URL.
+- `src/proxy.ts` gates on authentication only, by matching the request path against
+  `PROTECTED_PREFIXES` after stripping the locale, and redirecting anonymous
+  visitors to `/signin`. Object-level checks belong next to the data access, not in
+  the proxy — the proxy cannot know which organization owns the event in the URL.
+- The helpers in `src/lib/server/authz.ts` implement every predicate above:
+  `currentUser` / `requireUser` / `requireAdmin`, `membershipRole`, `isOrganiser`,
+  `membershipsOf`, and `requireMembership(orgId, { atLeast })`. Use them rather than
+  querying `MembershipModel` at the call site.
 
 ---
 
