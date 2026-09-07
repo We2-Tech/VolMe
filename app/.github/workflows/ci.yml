@@ -1,0 +1,184 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ── Where the jobs run ─────────────────────────────────────────────────────────
+# quality/test/build/docker/deploy run on a self-hosted runner (labels below).
+# This is only safe because the repo is PRIVATE: those jobs trigger on
+# `pull_request` and execute the PR branch's code (`npm ci` lifecycle
+# scripts, `next.config.ts`, test files) — on a public repo, anyone could
+# fork it and open a PR to get arbitrary code execution on this machine. If
+# this repo ever goes public, switch `runs-on:` below back to
+# `ubuntu-latest` for those five jobs first.
+#
+# ── Configurable variables ─────────────────────────────────────────────────────
+# NODE_VERSION  — Node.js version used across all jobs
+# REGISTRY      — container registry (ghcr.io · docker.io · <AWS ECR URL> …)
+# IMAGE_NAME    — defaults to ghcr.io/<owner>/<repo>; override if needed
+env:
+  NODE_VERSION: '24'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# Cancel in-progress runs on the same branch when a new push arrives
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Stage 0: Security scan (GitHub-hosted) ───────────────────────────────────
+  semgrep:
+    name: Semgrep Security Scan
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Scan
+        run: semgrep ci --config=auto
+
+  # ── Stage 1: Code quality ────────────────────────────────────────────────────
+  quality:
+    name: Quality (Lint · Format · Type-check)
+    needs: semgrep
+    # semgrep is skipped (not failed) for Dependabot PRs (see its `if:` above).
+    # A skipped dependency doesn't satisfy the default success() gate, so
+    # without this override quality/test/build would all cascade-skip too
+    if: always() && (needs.semgrep.result == 'success' || needs.semgrep.result == 'skipped')
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: cache-deps
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run type-check
+
+  # ── Stage 2: Tests ───────────────────────────────────────────────────────────
+  test:
+    name: Test
+    needs: quality
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: cache-deps
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run test:run
+
+  # ── Stage 3: Production build ────────────────────────────────────────────────
+  build:
+    name: Build
+    needs: test
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: cache-deps
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: nextjs-build
+          # standalone/ is the deployable Node.js bundle; static/ holds hashed assets
+          path: |
+            .next/standalone/
+            .next/static/
+          retention-days: 7
+
+  # ── Stage 4: Docker build & push to GHCR ────────────────────────────────────
+  # Disabled by default. To enable:
+  #   Go to Settings → Variables → Actions → New variable
+  #   Name: ENABLE_DOCKER_PUSH  Value: true
+  docker:
+    name: Docker · Push to GHCR
+    needs: build
+    if: vars.ENABLE_DOCKER_PUSH == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, ARM64]
+    permissions:
+      contents: read
+      packages: write # required to push to GHCR
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Log in to ${{ env.REGISTRY }}
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Build and push
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── Stage 5: Deploy (self-hosted) ────────────────────────────────────────────
+  # The runner IS the target server, so deploy = rebuild + recreate in place.
+  # Independent of the GHCR push above; runs only once the full pipeline is green.
+  # Disabled by default — this job spins up real containers on the runner's
+  # host, and repos sharing that self-hosted runner may not want that just
+  # from a push to main. To enable:
+  #   Go to Settings → Variables → Actions → New variable
+  #   Name: ENABLE_DEPLOY  Value: true
+  deploy:
+    name: Deploy
+    needs: build
+    if: vars.ENABLE_DEPLOY == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Write .env
+        run: |
+          cat > .env <<EOF
+          MONGO_URI=${{ secrets.MONGO_URI }}
+          TUNNEL_TOKEN=${{ secrets.TUNNEL_TOKEN }}
+          EOF
+      - name: Deploy
+        run: docker compose up -d --build

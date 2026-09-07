@@ -1,0 +1,30 @@
+name: Semgrep Security Scan
+
+# push/pull_request scans are handled by ci.yml's Stage 0 (job `semgrep`) —
+# this workflow only runs on the weekly schedule, so it isn't a duplicate
+# run of the same scan.
+on:
+  schedule:
+    - cron: '0 1 * * 1' # every Monday 01:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  semgrep:
+    name: Scan
+    runs-on: ubuntu-latest
+    # Skip Dependabot PRs — no secrets available there
+    if: github.actor != 'dependabot[bot]'
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Run Semgrep
+        run: semgrep ci --config=auto
+        env:
+          # Optional: create a free account at semgrep.dev and add the token
+          # as a repository secret to unlock more rules and view results in
+          # the Semgrep dashboard. Without it the scan still runs with
+          # community rules.
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}

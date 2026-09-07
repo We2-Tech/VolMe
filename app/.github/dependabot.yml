@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Shanghai
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
+    groups:
+      # All minor/patch bumps land in a single weekly PR, auto-merged by
+      # .github/workflows/dependabot-auto-merge.yml once CI is green.
+      minor-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+      # Majors are left ungrouped (one PR each) so they always get a
+      # manual look before merging.
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Shanghai
+    cooldown:
+      default-days: 7
+    groups:
+      minor-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch

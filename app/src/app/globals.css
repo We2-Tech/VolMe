@@ -1,0 +1,14 @@
+/*
+ * Global styles. Resets, typography, and color schemes are handled by MUI's
+ * <CssBaseline /> and theme. Keep this file for app-wide overrides only.
+ */
+
+html,
+body {
+  height: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
