@@ -67,6 +67,17 @@ export function ApiErrorSchema() {
 // Query / search params
 // ---------------------------------------------------------------------------
 
+/**
+ * A boolean arriving as a URL search param.
+ *
+ * Do **not** use `z.coerce.boolean()` here: it is `Boolean(value)`, and
+ * `Boolean("false")` is `true`, so `?remote=false` would filter to remote-only —
+ * the opposite of what the visitor asked for.
+ */
+export const BooleanParamSchema = z
+  .union([z.boolean(), z.enum(['true', 'false', '1', '0'])])
+  .transform((v) => v === true || v === 'true' || v === '1')
+
 export const PaginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),

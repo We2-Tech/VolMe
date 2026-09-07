@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ObjectIdSchema, AddressSchema, GeoPointSchema } from './common'
+import { ObjectIdSchema, AddressSchema, GeoPointSchema, BooleanParamSchema } from './common'
 import { EventCategorySchema, LanguageSchema } from './enums'
 
 /**
@@ -107,7 +107,7 @@ export const EventSearchParamsSchema = z.object({
   city: z.string().max(100).optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
-  remote: z.coerce.boolean().optional(),
+  remote: BooleanParamSchema.optional(),
   /** v1 ranked paid organisers first; with payments gone the default is the event
    *  starting soonest (docs/decisions/0004). */
   sort: z.enum(['startDate', 'newest', 'rating']).default('startDate'),

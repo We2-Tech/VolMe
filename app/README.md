@@ -72,6 +72,8 @@ npm run dev
 │   │   └── routing.ts       # 支持的 locale 列表与默认 locale
 │   ├── lib/
 │   │   ├── recurrence.ts    # 重复规则展开（按 IANA 时区算，纯函数）
+│   │   ├── events-query.ts  # 列表筛选参数 → MongoDB 查询（纯函数）
+│   │   ├── applications-state.ts # 申请状态机（纯函数）
 │   │   ├── schemas/         # Zod：领域模型的唯一事实来源，TS 类型由 z.infer 派生
 │   │   │   ├── common.ts    # ObjectId · Address · GeoPoint · Pagination · ApiResponse
 │   │   │   ├── enums.ts     # 角色 · 活动分类 · 语言 · 申请状态
@@ -84,7 +86,9 @@ npm run dev
 │   │       ├── db.ts        # Mongoose 连接封装（读取 MONGO_URI，跨热重载缓存连接）
 │   │       ├── mongo-client.ts # Auth.js adapter 用的原生 MongoClient
 │   │       ├── authz.ts     # docs/roles.md 里那些判断的代码实现
-│   │       ├── services/    # 跨模型的服务（系列展开与滚动补齐）
+│   │       ├── email.ts     # Resend HTTP API + 四封通知模板
+│   │       ├── actions/     # Server Actions：UI 唯一的写入口
+│   │       ├── services/    # 业务规则与数据访问（权限检查在这一层）
 │   │       └── models/      # Mongoose 模型，与 schemas/ 一一对应
 │   ├── test/
 │   │   └── setup.ts         # Testing Library 全局配置

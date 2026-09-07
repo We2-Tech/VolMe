@@ -1,0 +1,132 @@
+{
+  "name": "@aws-sdk/checksums",
+  "version": "3.1000.29",
+  "description": "Checksum algorithms and flexible checksums middleware for the AWS SDK",
+  "homepage": "https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/checksums",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "AWS SDK for JavaScript Team",
+    "url": "https://aws.amazon.com/sdk-for-javascript/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws/aws-sdk-js-v3.git",
+    "directory": "packages-internal/checksums"
+  },
+  "files": [
+    "./crc.d.ts",
+    "./crc.js",
+    "./flexible-checksums.d.ts",
+    "./flexible-checksums.js",
+    "./md5.d.ts",
+    "./md5.js",
+    "./sha.d.ts",
+    "./sha.js",
+    "dist-*/**"
+  ],
+  "sideEffects": false,
+  "main": "./dist-cjs/index.js",
+  "module": "./dist-es/index.js",
+  "browser": {
+    "./dist-es/submodules/crc/index.js": "./dist-es/submodules/crc/index.browser.js",
+    "./dist-es/submodules/sha/index.js": "./dist-es/submodules/sha/index.browser.js"
+  },
+  "types": "./dist-types/index.d.ts",
+  "typesVersions": {
+    "<4.5": {
+      "dist-types/*": [
+        "dist-types/ts3.4/*"
+      ],
+      "*": [
+        "dist-types/ts3.4/submodules/*/index.d.ts"
+      ]
+    }
+  },
+  "react-native": {
+    "./dist-es/submodules/crc/index.js": "./dist-es/submodules/crc/index.browser.js",
+    "./dist-es/submodules/sha/index.js": "./dist-es/submodules/sha/index.browser.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist-types/index.d.ts",
+      "module": "./dist-es/index.js",
+      "node": "./dist-cjs/index.js",
+      "import": "./dist-es/index.js",
+      "require": "./dist-cjs/index.js"
+    },
+    "./package.json": {
+      "module": "./package.json",
+      "node": "./package.json",
+      "import": "./package.json",
+      "require": "./package.json"
+    },
+    "./crc": {
+      "types": "./dist-types/submodules/crc/index.d.ts",
+      "react-native": "./dist-es/submodules/crc/index.browser.js",
+      "browser": "./dist-es/submodules/crc/index.browser.js",
+      "module": "./dist-es/submodules/crc/index.js",
+      "node": "./dist-cjs/submodules/crc/index.js",
+      "import": "./dist-es/submodules/crc/index.js",
+      "require": "./dist-cjs/submodules/crc/index.js"
+    },
+    "./flexible-checksums": {
+      "types": "./dist-types/submodules/flexible-checksums/index.d.ts",
+      "module": "./dist-es/submodules/flexible-checksums/index.js",
+      "node": "./dist-cjs/submodules/flexible-checksums/index.js",
+      "import": "./dist-es/submodules/flexible-checksums/index.js",
+      "require": "./dist-cjs/submodules/flexible-checksums/index.js"
+    },
+    "./sha": {
+      "types": "./dist-types/submodules/sha/index.d.ts",
+      "react-native": "./dist-es/submodules/sha/index.browser.js",
+      "browser": "./dist-es/submodules/sha/index.browser.js",
+      "module": "./dist-es/submodules/sha/index.js",
+      "node": "./dist-cjs/submodules/sha/index.js",
+      "import": "./dist-es/submodules/sha/index.js",
+      "require": "./dist-cjs/submodules/sha/index.js"
+    },
+    "./md5": {
+      "types": "./dist-types/submodules/md5/index.d.ts",
+      "module": "./dist-es/submodules/md5/index.js",
+      "node": "./dist-cjs/submodules/md5/index.js",
+      "import": "./dist-es/submodules/md5/index.js",
+      "require": "./dist-cjs/submodules/md5/index.js"
+    }
+  },
+  "scripts": {
+    "benchmark": "node ./scripts/checksum-perf.mjs",
+    "build": "concurrently 'yarn:build:types' 'yarn:build:es' && yarn build:cjs",
+    "build:cjs": "node ../../scripts/compilation/inline",
+    "build:es": "premove dist-es && tsc -p tsconfig.es.json",
+    "build:include:deps": "yarn g:turbo run build -F=\"$npm_package_name\"",
+    "build:types": "premove dist-types && tsc -p tsconfig.types.json",
+    "build:types:downlevel": "downlevel-dts dist-types dist-types/ts3.4",
+    "clean": "premove dist-cjs dist-es dist-types",
+    "extract:docs": "api-extractor run --local",
+    "lint": "node ../../scripts/validation/submodules-linter.js",
+    "prebuild": "yarn lint",
+    "test": "yarn g:vitest run",
+    "test:watch": "yarn g:vitest watch",
+    "test:integration": "yarn g:vitest run -c vitest.config.integ.mts",
+    "test:integration:watch": "yarn g:vitest watch -c vitest.config.integ.mts",
+    "test:e2e": "yarn g:vitest run -c vitest.config.e2e.mts --mode development",
+    "test:e2e:watch": "yarn g:vitest watch -c vitest.config.e2e.mts"
+  },
+  "dependencies": {
+    "@aws-sdk/core": "^3.977.9",
+    "@aws-sdk/types": "^3.974.5",
+    "@smithy/core": "^3.33.3",
+    "@smithy/types": "^4.17.2",
+    "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "1.0.1",
+    "concurrently": "7.0.0",
+    "downlevel-dts": "0.10.1",
+    "premove": "4.0.0",
+    "typescript": "~7.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

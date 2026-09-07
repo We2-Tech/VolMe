@@ -1,13 +1,22 @@
 import 'server-only'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+import { Types } from 'mongoose'
 import { connectDB } from '../db'
 import { EventModel, EventSeriesModel } from '../models'
+import { requireMembership } from '../authz'
 import { expandOccurrences } from '@/lib/recurrence'
 import {
+  EventFormSchema,
   GENERATION_HORIZON_MONTHS,
   GENERATION_MAX_PER_BATCH,
+  RecurrenceRuleSchema,
   type RecurrenceRule,
 } from '@/lib/schemas'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 /**
  * Materialises a series' occurrences up to the rolling horizon.
@@ -137,4 +146,110 @@ export async function nextOpenOccurrence(seriesId: string) {
 async function countAccepted(eventId: string): Promise<number> {
   const { ApplicationModel } = await import('../models')
   return ApplicationModel.countDocuments({ event: eventId, status: 'ACCEPTED' })
+}
+
+/**
+ * Create a repeating event: the series, its first occurrence, and the rest of the
+ * window. The first occurrence doubles as the template `materialiseSeries` copies
+ * forward, which is why it is written before generation runs.
+ */
+export async function createSeries(organizationId: string, input: unknown, ruleInput: unknown) {
+  const { user } = await requireMembership(organizationId)
+  const data = EventFormSchema.parse(input)
+  const rule = RecurrenceRuleSchema.parse(ruleInput)
+
+  await connectDB()
+  const seriesStart = dayjs(data.startDate).tz(rule.timezone).format('YYYY-MM-DD')
+
+  const series = await EventSeriesModel.create({
+    organization: organizationId,
+    createdBy: user.id,
+    rule,
+    seriesStart,
+    generatedUntil: null,
+  })
+
+  const [firstStart] = expandOccurrences(rule, {
+    seriesStart,
+    until: dayjs().add(GENERATION_HORIZON_MONTHS, 'month').toDate(),
+    max: 1,
+  })
+  if (!firstStart) throw new Error('That rule produces no dates in the next three months')
+
+  await EventModel.create({
+    ...data,
+    organization: organizationId,
+    createdBy: user.id,
+    series: series._id,
+    startDate: firstStart,
+    endDate: dayjs(firstStart).add(rule.durationMinutes, 'minute').toDate(),
+    publishedAt: data.isDraft ? null : new Date(),
+  })
+
+  await materialiseSeries(String(series._id))
+  return String(series._id)
+}
+
+/**
+ * Apply an edit to one occurrence and every later one.
+ *
+ * There is deliberately no "all occurrences": that would rewrite dates that have
+ * already happened, along with their applications and reviews
+ * (docs/decisions/0009). Editing a single date is `updateEvent` in
+ * `services/events.ts`.
+ */
+export async function updateSeriesFromOccurrence(eventId: string, input: unknown) {
+  await connectDB()
+  const pivot = await EventModel.findById(eventId, {
+    series: 1,
+    organization: 1,
+    startDate: 1,
+  }).lean<{
+    series: Types.ObjectId | null
+    organization: Types.ObjectId
+    startDate: Date
+  } | null>()
+  if (!pivot?.series) throw new Error('This event is not part of a series')
+
+  await requireMembership(String(pivot.organization))
+  const data = EventFormSchema.parse(input)
+
+  const { startDate: _unusedStart, endDate: _unusedEnd, ...shared } = data
+  void _unusedStart
+  void _unusedEnd
+
+  await EventModel.updateMany(
+    { series: pivot.series, startDate: { $gte: pivot.startDate } },
+    shared,
+  )
+}
+
+/**
+ * Stop a series. Future occurrences are cancelled rather than deleted, so anyone
+ * already accepted still sees that the date is off, and past dates keep their
+ * record intact.
+ */
+export async function endSeries(seriesId: string) {
+  await connectDB()
+  const series = await EventSeriesModel.findById(seriesId, { organization: 1 }).lean<{
+    organization: Types.ObjectId
+  } | null>()
+  if (!series) return
+
+  await requireMembership(String(series.organization), { atLeast: 'OWNER' })
+  await EventModel.updateMany(
+    { series: seriesId, startDate: { $gte: new Date() } },
+    { isCancelled: true },
+  )
+  await EventSeriesModel.updateOne({ _id: seriesId }, { generatedUntil: new Date() })
+}
+
+/** Every materialised date of a series, soonest first. */
+export async function listOccurrences(seriesId: string) {
+  await connectDB()
+  await materialiseSeries(seriesId)
+  return EventModel.find({ series: seriesId })
+    .sort({ startDate: 1 })
+    .select('title startDate endDate isCancelled peopleNeeded')
+    .lean()
 }
