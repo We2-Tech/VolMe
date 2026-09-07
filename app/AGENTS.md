@@ -34,6 +34,18 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - Whenever a change makes something `README.md` documents go stale — tech stack, directory structure, `package.json` scripts, the CI stage list/diagram, Docker instructions — update `README.md` in the same change. It has parallel 中文 and English sections covering the same content; keep both in sync.
 
+# Roles and permissions
+
+Every authorization check in this project answers to
+[`docs/roles.md`](docs/roles.md) — two platform roles (`USER`, `ADMIN`) on the user,
+two organization roles (`OWNER`, `MEMBER`) on a membership, and "is an organiser"
+derived from having a membership rather than stored. **Read it before writing any
+Server Action, Route Handler or page that reads or writes someone else's data**, and
+update it in the same change as any code that adds a capability or moves who holds
+it. Two rules that are easy to get wrong: take the actor from the Auth.js session,
+never from the request body, and query membership per request rather than caching it
+in the session.
+
 # Decisions, research & deferred work
 
 Agent sessions don't share memory — a non-obvious decision made in one session, or work someone deliberately left for later, is invisible to the next session unless it's written where that session will actually look, _and_ unless the next session actually goes looking. Both halves are mandatory, not optional judgment calls:
