@@ -68,14 +68,22 @@ npm run dev
 │   │   ├── request.ts       # 服务端 getTranslations 配置
 │   │   └── routing.ts       # 支持的 locale 列表与默认 locale
 │   ├── lib/
-│   │   ├── schemas/
-│   │   │   └── index.ts     # Zod schemas（ObjectId · Pagination · ApiResponse；领域模型在 P2 加入）
+│   │   ├── schemas/         # Zod：领域模型的唯一事实来源，TS 类型由 z.infer 派生
+│   │   │   ├── common.ts    # ObjectId · Address · GeoPoint · Pagination · ApiResponse
+│   │   │   ├── enums.ts     # 角色 · 活动分类 · 语言 · 申请状态
+│   │   │   ├── user.ts      # User · 资料表单 · session 载荷
+│   │   │   ├── organization.ts # Organization · Membership · Invitation
+│   │   │   ├── event.ts     # Event · Review · 列表筛选参数
+│   │   │   └── application.ts  # Application · 留言 · Document
 │   │   └── server/
-│   │       └── db.ts        # Mongoose 连接封装（读取 MONGO_URI，跨热重载缓存连接）
+│   │       ├── db.ts        # Mongoose 连接封装（读取 MONGO_URI，跨热重载缓存连接）
+│   │       └── models/      # Mongoose 模型，与 schemas/ 一一对应
 │   ├── test/
 │   │   └── setup.ts         # Testing Library 全局配置
 │   ├── proxy.ts             # next-intl 中间件（自动 locale 检测与重定向）
 │   └── theme.ts             # MUI 主题（CSS Variables + light/dark colorSchemes）
+├── scripts/
+│   └── seed.ts              # 造开发数据（npm run seed）；v1 数据不迁移，用它代替快照
 ├── next.config.ts           # Next.js 配置（standalone output · next-intl 插件）
 └── vitest.config.ts         # Vitest 配置（jsdom · 路径别名）
 ```
@@ -204,7 +212,11 @@ await connectDB()
 // 定义 Mongoose model 并查询……
 ```
 
-`connectDB()` 会跨请求 / 热重载复用同一个连接（见 `src/lib/server/db.ts`），不需要每次手动管理连接池。Model 建议放在 `src/lib/server/models/` 下（新建该目录）。
+`connectDB()` 会跨请求 / 热重载复用同一个连接（见 `src/lib/server/db.ts`），不需要每次手动管理连接池。Model 放在 `src/lib/server/models/` 下，与 `src/lib/schemas/` 中同名的 Zod schema 一一对应 —— 改一边就要在同一个 commit 里改另一边。
+
+compose 的 `mongo` 服务只把端口发布在 `127.0.0.1` 上。如果本机 27017 已被占用，在 `.env` 里改 `MONGO_PORT`（并同步改 `MONGO_URI`）。
+
+有了库之后跑 `npm run seed` 造数据：3 个组织、5 个用户、4 个活动、若干申请与评价。脚本会先清空 VolMe 的 collection，并且拒绝对名字不像开发库的数据库动手。
 
 ### 启用 Docker 镜像推送（可选）
 
@@ -247,6 +259,7 @@ npm run type-check     # TypeScript 类型检查
 npm run test           # 运行测试（监听模式）
 npm run test:run       # 运行测试（单次）
 npm run test:ui        # Vitest 浏览器 UI
+npm run seed           # 清空并重建开发数据（需要 MONGO_URI 指向开发库）
 ```
 
 ---
@@ -510,7 +523,11 @@ await connectDB()
 // define Mongoose models and query…
 ```
 
-`connectDB()` reuses the same connection across requests and hot-reloads (see `src/lib/server/db.ts`) — no manual pool management needed. Put models under `src/lib/server/models/` (create that directory).
+`connectDB()` reuses the same connection across requests and hot-reloads (see `src/lib/server/db.ts`) — no manual pool management needed. Models live in `src/lib/server/models/`, one per Zod schema of the same name in `src/lib/schemas/` — change one and change the other in the same commit.
+
+The compose `mongo` service publishes its port on `127.0.0.1` only. If something else already holds 27017 on your machine, set `MONGO_PORT` in `.env` (and match it in `MONGO_URI`).
+
+With a database in place, run `npm run seed`: 3 organizations, 5 users, 4 events, plus applications and a review. It clears VolMe's collections first, and refuses to run against a database whose name doesn't look like a development one.
 
 ### Enable Docker image push (optional)
 
@@ -553,6 +570,7 @@ npm run type-check     # TypeScript type check
 npm run test           # run tests in watch mode
 npm run test:run       # run tests once
 npm run test:ui        # Vitest browser UI
+npm run seed           # wipe and rebuild the development fixture (needs MONGO_URI)
 ```
 
 ---

@@ -38,6 +38,11 @@ services:
   mongo:
     image: mongo:latest
     command: ['--wiredTigerCacheSizeGB', '1']
+    # Published on the loopback interface only, so `npm run dev` and `npm run seed`
+    # on the host can reach it while nothing on the network can. Override
+    # MONGO_PORT in .env if something else already holds 27017 on this machine.
+    ports:
+      - '127.0.0.1:${MONGO_PORT:-27017}:27017'
     volumes:
       - mongo-data:/data/db
     restart: unless-stopped
