@@ -1,3 +1,25 @@
+# VolMe
+
+This repository is the VolMe rewrite, not a fresh template checkout. Before doing
+anything here, read `docs/decisions/0001-rewrite-volme-on-this-template.md` — it
+records the ground rules, the most important of which is that **there is no
+backward compatibility with VolMe v1**: the old database is not migrated, old
+accounts and sessions are not preserved, and v1 field names and endpoints are
+historical reference only, never a contract to satisfy.
+
+The v1 code still sits at `../frontend` and `../backend` as a reference. It is
+deleted, and `app/` is promoted to the repository root, at the end of the migration.
+
+Migration progress is tracked on a board outside this repository:
+https://claude.ai/code/artifact/935dc9ea-94b9-402c-9168-7fc3c6da137d
+
+**Read that board before starting migration work, and tick tasks off after
+finishing them.** Its state lives in the artifact's own database — one document,
+`progress/board`, shaped `{"done": {"p0-2": true, …}, "updated": "…"}`, where the
+keys are the task ids printed on the board (`p0-1` … `p6-6`). Writing it replaces
+the whole document, so read it, merge, then write — otherwise other people's ticks
+are lost. Reference those task ids in commit messages and `docs/todos/` entries.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
@@ -10,7 +32,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 `README.md` documents this project's tech stack, directory structure, a step-by-step "remove the template, build your app" checklist, scripts, and CI/CD setup. Unlike this file, it is **not** injected into context automatically — it goes unread unless you open it yourself.
 
-- Before removing template/example code (`src/components/HomeView.tsx`, the placeholder Zod schemas, etc.) or building the project's first real features, read `README.md` in full and follow its "用此模板创建新项目 / How to Use This Template" section step by step rather than improvising an order.
 - Whenever a change makes something `README.md` documents go stale — tech stack, directory structure, `package.json` scripts, the CI stage list/diagram, Docker instructions — update `README.md` in the same change. It has parallel 中文 and English sections covering the same content; keep both in sync.
 
 # Decisions & deferred work
@@ -39,11 +60,11 @@ This project uses **MUI v9** for all UI. Do not introduce Tailwind, plain CSS mo
 
 This project uses **next-intl** for i18n. All pages live under `src/app/[locale]/`. Do not add pages directly under `src/app/` (except layouts, not-found, and error boundaries).
 
-- **Routing config:** `src/i18n/routing.ts` — defines supported locales (`en`, `zh-CN`) and default locale.
+- **Routing config:** `src/i18n/routing.ts` — defines supported locales (`en`, `de`, `zh-CN`) and default locale.
 - **Navigation:** import `Link`, `useRouter`, `usePathname`, `redirect` from `@/i18n/navigation` (not from `next/navigation` or `next/link`). These are locale-aware wrappers.
 - **Server translations:** use `getTranslations` from `next-intl/server` in Server Components. Call `setRequestLocale(locale)` at the top of every layout/page for static rendering support.
 - **Client translations:** use `useTranslations` from `next-intl` in Client Components. The `NextIntlClientProvider` is set up in `src/app/[locale]/layout.tsx`.
-- **Message files:** `messages/en.json` and `messages/zh-CN.json`. Add keys to both files when adding new text.
+- **Message files:** `messages/en.json`, `messages/de.json`, `messages/zh-CN.json`. Add keys to all three when adding new text. `de` and `zh-CN` are currently incomplete — see `docs/todos/0001-incomplete-de-and-zh-translations.md`.
 - **Locale switcher:** `src/components/LocaleSwitcher.tsx` — uses `useLocale()` + `router.replace(pathname, { locale })` to switch without losing the current path.
 - **Proxy routing:** `src/proxy.ts` (Next.js 16 renamed `middleware.ts` → `proxy.ts`, export `proxy` instead of `middleware`). next-intl's `createMiddleware` handles auto-redirect to the user's preferred locale.
 - **Root layout:** the `src/app/layout.tsx` calls `getLocale()` (async) to set `<html lang={locale}>` correctly — this makes all routes dynamic (server-rendered on demand). If you need static generation, remove `getLocale()` and accept a hardcoded `lang` attribute.

@@ -1,6 +1,10 @@
-# Next.js Template
+# VolMe
 
-一个开箱即用的 Next.js 生产级蓝图，内置 App Router、服务端渲染、国际化、MUI 组件库与完整工具链配置。
+VolMe 是一个志愿活动平台，连接活动组织者与志愿者：活动发布、个性化搜索、报名申请、志愿者筛选与活动评价。
+
+本目录是 VolMe 的重写版（v2），基于 [We2-Tech/nextjs-template](https://github.com/We2-Tech/nextjs-template)，通过 `git subtree` 引入。v1 的 CRA 前端与 Express 后端仍保留在仓库的 `../frontend` 和 `../backend`，作为重写期间的参照物，迁移完成后删除。
+
+**不做后向兼容**：v1 的数据库不迁移、账号与 session 不保留。原因见 [`docs/decisions/0001-rewrite-volme-on-this-template.md`](docs/decisions/0001-rewrite-volme-on-this-template.md)。
 
 [English](#english) | 中文
 
@@ -28,15 +32,15 @@
 
 ```bash
 # 1. 克隆仓库
-git clone <your-repo-url> my-app
-cd my-app
+git clone git@github.com:We2-Tech/VolMe.git
+cd VolMe/app
 
 # 2. 安装依赖
 npm install
 
 # 3. 启动开发服务器
 npm run dev
-# 访问 http://localhost:3000（自动重定向到 /en 或 /zh-CN）
+# 访问 http://localhost:3000（自动重定向到 /en、/de 或 /zh-CN）
 ```
 
 ---
@@ -46,6 +50,7 @@ npm run dev
 ```
 ├── messages/
 │   ├── en.json              # 英文翻译
+│   ├── de.json              # 德文翻译
 │   └── zh-CN.json           # 中文翻译
 ├── src/
 │   ├── app/
@@ -57,7 +62,6 @@ npm run dev
 │   │   ├── not-found.tsx    # 根级 404 fallback（无效 locale 路径）
 │   │   └── globals.css
 │   ├── components/          # 客户端组件
-│   │   ├── HomeView.tsx     # 首页示例（删除或替换）
 │   │   └── LocaleSwitcher.tsx
 │   ├── i18n/
 │   │   ├── navigation.ts    # locale-aware 的 Link / useRouter / usePathname
@@ -65,7 +69,7 @@ npm run dev
 │   │   └── routing.ts       # 支持的 locale 列表与默认 locale
 │   ├── lib/
 │   │   ├── schemas/
-│   │   │   └── index.ts     # Zod schemas（User · LoginForm · Pagination 等）
+│   │   │   └── index.ts     # Zod schemas（ObjectId · Pagination · ApiResponse；领域模型在 P2 加入）
 │   │   └── server/
 │   │       └── db.ts        # Mongoose 连接封装（读取 MONGO_URI，跨热重载缓存连接）
 │   ├── test/
@@ -78,31 +82,22 @@ npm run dev
 
 ---
 
-## 用此模板创建新项目（分步指引）
+## 迁移进度
 
-### 第一步：替换项目信息
+52 项任务的看板在仓库之外：<https://claude.ai/code/artifact/935dc9ea-94b9-402c-9168-7fc3c6da137d>
 
-1. 修改 `package.json` 中的 `name` 字段为你的项目名
-2. 修改 `messages/en.json` 和 `messages/zh-CN.json` 中的 `nav.appTitle` 为你的应用标题
+任务编号（`p0-1` … `p6-6`）是看板与本仓库之间的共用词汇，请在 commit 和 `docs/todos/` 条目中引用。模板自带的示例代码（`HomeView.tsx`、占位 Zod schema）已在 P1 阶段移除。
 
-### 第二步：删除示例代码
+## 开发指引
 
-首页示例内容集中在 `src/components/HomeView.tsx`，直接替换为你自己的业务组件：
-
-```bash
-rm src/components/HomeView.tsx
-```
-
-然后打开 `src/app/[locale]/page.tsx`，删除 `HomeView` 的 import 和 JSX，换成你自己的首页内容。
-
-### 第三步：配置国际化
+### 配置国际化
 
 **支持的语言**在 `src/i18n/routing.ts` 中定义：
 
 ```ts
 // src/i18n/routing.ts
 export const routing = defineRouting({
-  locales: ['en', 'zh-CN'], // 按需增删
+  locales: ['en', 'de', 'zh-CN'], // 按需增删
   defaultLocale: 'en',
 })
 ```
@@ -127,7 +122,7 @@ const t = useTranslations()
 <h1>{t('home.title')}</h1>
 ```
 
-### 第四步：添加页面
+### 添加页面
 
 所有页面必须放在 `src/app/[locale]/` 目录下，这样 next-intl 的中间件才能正确处理语言路由：
 
@@ -154,7 +149,7 @@ const router = useRouter()
 router.push('/dashboard')
 ```
 
-### 第五步：定义 Zod Schema
+### 定义 Zod Schema
 
 在 `src/lib/schemas/index.ts` 中定义数据结构，用 `z.infer<>` 派生 TypeScript 类型，避免手写重复类型：
 
@@ -175,7 +170,7 @@ const json = await res.json()
 const article = ArticleSchema.parse(json) // 类型不符时立刻抛错
 ```
 
-### 第六步：写测试
+### 写测试
 
 测试文件放在 `__tests__/` 子目录，或与源文件同级并命名为 `*.test.ts` / `*.test.tsx`：
 
@@ -196,7 +191,7 @@ vi.mock('@/i18n/navigation', () => ({
 
 参考 `src/components/__tests__/LocaleSwitcher.test.tsx` 查看完整示例。
 
-### 第七步：配置数据库连接
+### 配置数据库连接
 
 1. 复制环境变量模板：`cp .env.example .env`
 2. 本地开发时启动一个 MongoDB 实例（或使用 `docker compose up -d mongo`），并在 `.env` 中设置 `MONGO_URI`
@@ -211,7 +206,7 @@ await connectDB()
 
 `connectDB()` 会跨请求 / 热重载复用同一个连接（见 `src/lib/server/db.ts`），不需要每次手动管理连接池。Model 建议放在 `src/lib/server/models/` 下（新建该目录）。
 
-### 第八步：启用 Docker 镜像推送（可选）
+### 启用 Docker 镜像推送（可选）
 
 CI 的 Docker stage 默认关闭。在 GitHub 仓库的 **Settings → Variables → Actions** 中新建变量即可开启：
 
@@ -225,7 +220,7 @@ Value: true
 - `ghcr.io/<owner>/<repo>:latest`
 - `ghcr.io/<owner>/<repo>:sha-xxxxxxx`
 
-### 第九步：启用自动部署（可选）
+### 启用自动部署（可选）
 
 CI 的 deploy stage 默认关闭。因为 self-hosted runner 本身就是部署目标服务器（见下方"CI 流水线"），开启后每次 push 到 `main` 都会在 runner 所在机器上执行 `docker compose up -d --build`，真实启停容器。在 GitHub 仓库的 **Settings → Variables → Actions** 中新建变量即可开启：
 
@@ -287,7 +282,7 @@ Dockerfile 采用三阶段构建（deps → builder → runner）。最终镜像
 
 ### 数据库（MongoDB）
 
-`app` 容器默认连接 compose 内置的 `mongo` 服务（`MONGO_URI=mongodb://mongo:27017/nextjs-template`），数据持久化在 `mongo-data` volume 中。如需指向外部 MongoDB（如 Atlas），在 `.env` 中覆盖 `MONGO_URI` 即可，`mongo` 服务仍会启动但不会被使用。
+`app` 容器默认连接 compose 内置的 `mongo` 服务（`MONGO_URI=mongodb://mongo:27017/volme`），数据持久化在 `mongo-data` volume 中。如需指向外部 MongoDB（如 Atlas），在 `.env` 中覆盖 `MONGO_URI` 即可，`mongo` 服务仍会启动但不会被使用。
 
 ### Cloudflare Tunnel（可选）
 
@@ -361,9 +356,13 @@ env:
 
 <a name="english"></a>
 
-# Next.js Template — English
+# VolMe — English
 
-A production-ready Next.js blueprint with App Router, SSR, i18n, MUI, and a fully configured toolchain.
+VolMe is a volunteering platform that connects event organisers with volunteers: event posting, personalised search, applications, volunteer selection, and event reviews.
+
+This directory is the VolMe rewrite (v2), built on [We2-Tech/nextjs-template](https://github.com/We2-Tech/nextjs-template) and vendored via `git subtree`. The v1 CRA frontend and Express backend remain at `../frontend` and `../backend` as a reference during the rewrite, and are deleted once the migration completes.
+
+**No backward compatibility**: the v1 database is not migrated and old accounts and sessions are not preserved. See [`docs/decisions/0001-rewrite-volme-on-this-template.md`](docs/decisions/0001-rewrite-volme-on-this-template.md).
 
 ## Tech Stack
 
@@ -386,38 +385,30 @@ A production-ready Next.js blueprint with App Router, SSR, i18n, MUI, and a full
 ## Getting Started
 
 ```bash
-git clone <your-repo-url> my-app
-cd my-app
+git clone git@github.com:We2-Tech/VolMe.git
+cd VolMe/app
 npm install
 npm run dev
-# Visit http://localhost:3000 (auto-redirects to /en or /zh-CN)
+# Visit http://localhost:3000 (auto-redirects to /en, /de or /zh-CN)
 ```
 
 ---
 
-## How to Use This Template (Step by Step)
+## Migration Progress
 
-### Step 1 — Update project metadata
+The 52-task board lives outside this repository: <https://claude.ai/code/artifact/935dc9ea-94b9-402c-9168-7fc3c6da137d>
 
-1. Change `name` in `package.json` to your project name
-2. Update `nav.appTitle` in `messages/en.json` and `messages/zh-CN.json` to your app title
+Task ids (`p0-1` … `p6-6`) are the shared vocabulary between that board and this repository — reference them in commit messages and `docs/todos/` entries. The template's example code (`HomeView.tsx`, the placeholder Zod schemas) was removed in P1.
 
-### Step 2 — Remove example code
+## Development Guide
 
-The example content lives in `src/components/HomeView.tsx`. Replace it with your own components:
-
-```bash
-rm src/components/HomeView.tsx
-# Then open src/app/[locale]/page.tsx and remove the HomeView import and JSX
-```
-
-### Step 3 — Configure i18n
+### Configure i18n
 
 Supported locales are defined in `src/i18n/routing.ts`:
 
 ```ts
 export const routing = defineRouting({
-  locales: ['en', 'zh-CN'], // add or remove as needed
+  locales: ['en', 'de', 'zh-CN'], // add or remove as needed
   defaultLocale: 'en',
 })
 ```
@@ -441,7 +432,7 @@ const t = useTranslations()
 <h1>{t('home.title')}</h1>
 ```
 
-### Step 4 — Add pages
+### Add pages
 
 All pages must live under `src/app/[locale]/` so the next-intl middleware handles locale routing correctly:
 
@@ -465,7 +456,7 @@ const router = useRouter()
 router.push('/dashboard')
 ```
 
-### Step 5 — Define Zod schemas
+### Define Zod schemas
 
 Define all runtime data shapes in `src/lib/schemas/index.ts` and derive TypeScript types with `z.infer<>`:
 
@@ -485,7 +476,7 @@ const json = await res.json()
 const article = ArticleSchema.parse(json)
 ```
 
-### Step 6 — Write tests
+### Write tests
 
 Place test files in `__tests__/` subdirectories or alongside source files as `*.test.ts` / `*.test.tsx`:
 
@@ -506,7 +497,7 @@ vi.mock('@/i18n/navigation', () => ({
 
 See `src/components/__tests__/LocaleSwitcher.test.tsx` for a complete example.
 
-### Step 7 — Configure the database connection
+### Configure the database connection
 
 1. Copy the env template: `cp .env.example .env`
 2. For local dev, run a MongoDB instance (or `docker compose up -d mongo`) and set `MONGO_URI` in `.env`
@@ -521,7 +512,7 @@ await connectDB()
 
 `connectDB()` reuses the same connection across requests and hot-reloads (see `src/lib/server/db.ts`) — no manual pool management needed. Put models under `src/lib/server/models/` (create that directory).
 
-### Step 8 — Enable Docker image push (optional)
+### Enable Docker image push (optional)
 
 The Docker stage in CI is disabled by default. Enable it by creating an Actions variable in **Settings → Variables → Actions**:
 
@@ -535,7 +526,7 @@ Once enabled, every push to `main` builds and pushes to GHCR:
 - `ghcr.io/<owner>/<repo>:latest`
 - `ghcr.io/<owner>/<repo>:sha-xxxxxxx`
 
-### Step 9 — Enable automatic deploy (optional)
+### Enable automatic deploy (optional)
 
 The deploy stage in CI is disabled by default. The self-hosted runner IS the deploy target (see "CI Pipeline" below), so enabling this makes every push to `main` run `docker compose up -d --build` on the runner's host — real containers, really started/stopped. Enable it by creating an Actions variable in **Settings → Variables → Actions**:
 
@@ -597,7 +588,7 @@ The Dockerfile uses a three-stage build (deps → builder → runner). The final
 
 ### Database (MongoDB)
 
-The `app` container connects to the bundled `mongo` service by default (`MONGO_URI=mongodb://mongo:27017/nextjs-template`), with data persisted in the `mongo-data` volume. To point at an external MongoDB (e.g. Atlas), override `MONGO_URI` in `.env` — the `mongo` service will still start but go unused.
+The `app` container connects to the bundled `mongo` service by default (`MONGO_URI=mongodb://mongo:27017/volme`), with data persisted in the `mongo-data` volume. To point at an external MongoDB (e.g. Atlas), override `MONGO_URI` in `.env` — the `mongo` service will still start but go unused.
 
 ### Cloudflare Tunnel (optional)
 

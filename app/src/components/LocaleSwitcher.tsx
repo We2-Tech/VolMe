@@ -13,6 +13,7 @@ import TranslateIcon from '@mui/icons-material/Translate'
 
 const localeNames: Record<string, string> = {
   en: 'English',
+  de: 'Deutsch',
   'zh-CN': '中文',
 }
 

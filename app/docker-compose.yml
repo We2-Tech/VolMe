@@ -7,7 +7,7 @@ services:
       - .env
     environment:
       # mongo service below; override MONGO_URI from .env if pointing elsewhere
-      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/nextjs-template}
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/volme}
     depends_on:
       mongo:
         condition: service_healthy

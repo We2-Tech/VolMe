@@ -1,123 +1,47 @@
 import { describe, it, expect } from 'vitest'
 import {
-  IdSchema,
-  UserSchema,
-  LoginFormSchema,
-  ProfileFormSchema,
+  ObjectIdSchema,
   ApiResponseSchema,
   ApiErrorSchema,
   PaginationSchema,
   SortOrderSchema,
 } from '@/lib/schemas'
+import { z } from 'zod'
 
-describe('IdSchema', () => {
-  it('accepts a valid UUID', () => {
-    expect(IdSchema.safeParse('550e8400-e29b-41d4-a716-446655440000').success).toBe(true)
+describe('ObjectIdSchema', () => {
+  it('accepts a 24-character hex id', () => {
+    expect(ObjectIdSchema.safeParse('507f1f77bcf86cd799439011').success).toBe(true)
   })
 
-  it('rejects a non-UUID string', () => {
-    expect(IdSchema.safeParse('not-a-uuid').success).toBe(false)
-  })
-})
-
-describe('UserSchema', () => {
-  const validUser = {
-    id: '550e8400-e29b-41d4-a716-446655440000',
-    name: 'Alice',
-    email: 'alice@example.com',
-    role: 'admin' as const,
-    createdAt: '2024-01-01T00:00:00Z',
-  }
-
-  it('accepts a valid user', () => {
-    const result = UserSchema.safeParse(validUser)
-    expect(result.success).toBe(true)
+  it('rejects a string of the wrong length', () => {
+    expect(ObjectIdSchema.safeParse('507f1f77bcf86cd7994390').success).toBe(false)
   })
 
-  it('coerces createdAt string to Date', () => {
-    const result = UserSchema.safeParse(validUser)
-    expect(result.success && result.data.createdAt).toBeInstanceOf(Date)
+  it('rejects non-hex characters', () => {
+    expect(ObjectIdSchema.safeParse('507f1f77bcf86cd7994390zz').success).toBe(false)
   })
 
-  it('rejects an invalid role', () => {
-    expect(UserSchema.safeParse({ ...validUser, role: 'superuser' }).success).toBe(false)
-  })
-
-  it('rejects a name that exceeds 100 characters', () => {
-    expect(UserSchema.safeParse({ ...validUser, name: 'a'.repeat(101) }).success).toBe(false)
-  })
-
-  it('rejects an invalid email', () => {
-    expect(UserSchema.safeParse({ ...validUser, email: 'not-an-email' }).success).toBe(false)
-  })
-})
-
-describe('LoginFormSchema', () => {
-  it('accepts valid credentials', () => {
-    expect(
-      LoginFormSchema.safeParse({ email: 'user@example.com', password: 'securepass' }).success,
-    ).toBe(true)
-  })
-
-  it('rejects a password shorter than 8 characters', () => {
-    const result = LoginFormSchema.safeParse({ email: 'user@example.com', password: 'short' })
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error.issues[0].message).toBe('Password must be at least 8 characters')
-    }
-  })
-
-  it('rejects an invalid email', () => {
-    expect(LoginFormSchema.safeParse({ email: 'bad-email', password: 'securepass' }).success).toBe(
-      false,
-    )
-  })
-})
-
-describe('ProfileFormSchema', () => {
-  it('accepts a valid profile', () => {
-    expect(ProfileFormSchema.safeParse({ name: 'Bob', email: 'bob@example.com' }).success).toBe(
-      true,
-    )
-  })
-
-  it('rejects an empty name', () => {
-    const result = ProfileFormSchema.safeParse({ name: '', email: 'bob@example.com' })
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error.issues[0].message).toBe('Name is required')
-    }
+  it('rejects an uppercase id', () => {
+    expect(ObjectIdSchema.safeParse('507F1F77BCF86CD799439011').success).toBe(false)
   })
 })
 
 describe('ApiResponseSchema', () => {
+  const Payload = z.object({ name: z.string() })
+
   it('wraps a data schema and accepts matching input', () => {
-    const schema = ApiResponseSchema(UserSchema)
-    const result = schema.safeParse({
-      data: {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        name: 'Alice',
-        email: 'alice@example.com',
-        role: 'viewer',
-        createdAt: '2024-01-01',
-      },
-      message: 'ok',
-    })
+    const result = ApiResponseSchema(Payload).safeParse({ data: { name: 'Alice' }, message: 'ok' })
     expect(result.success).toBe(true)
   })
 
   it('makes message optional', () => {
-    const schema = ApiResponseSchema(UserSchema)
-    const result = schema.safeParse({
-      data: {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        name: 'Alice',
-        email: 'alice@example.com',
-        role: 'editor',
-        createdAt: '2024-01-01',
-      },
-    })
+    const result = ApiResponseSchema(Payload).safeParse({ data: { name: 'Alice' } })
     expect(result.success).toBe(true)
+  })
+
+  it('rejects a payload that does not match the wrapped schema', () => {
+    const result = ApiResponseSchema(Payload).safeParse({ data: { name: 42 } })
+    expect(result.success).toBe(false)
   })
 })
 

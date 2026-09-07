@@ -4,40 +4,16 @@ import { z } from 'zod'
 // Primitives
 // ---------------------------------------------------------------------------
 
-export const IdSchema = z.string().uuid()
-export type Id = z.infer<typeof IdSchema>
+/** MongoDB ObjectId as it appears over the wire: 24 lowercase hex characters. */
+export const ObjectIdSchema = z.string().regex(/^[0-9a-f]{24}$/, 'Invalid id')
+export type ObjectId = z.infer<typeof ObjectIdSchema>
 
 // ---------------------------------------------------------------------------
-// User
+// Domain schemas
 // ---------------------------------------------------------------------------
-
-export const UserSchema = z.object({
-  id: IdSchema,
-  name: z.string().min(1).max(100),
-  email: z.email(),
-  role: z.enum(['admin', 'editor', 'viewer']),
-  createdAt: z.coerce.date(),
-})
-
-export type User = z.infer<typeof UserSchema>
-
-// ---------------------------------------------------------------------------
-// Forms  (extend or refine base schemas for specific form contexts)
-// ---------------------------------------------------------------------------
-
-export const LoginFormSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-})
-
-export type LoginForm = z.infer<typeof LoginFormSchema>
-
-export const ProfileFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  email: z.email(),
-})
-
-export type ProfileForm = z.infer<typeof ProfileFormSchema>
+// VolMe's own schemas (User, Event, Application, Review…) land here in P2 of the
+// migration — see the board in docs/decisions/0001-rewrite-on-nextjs-template.md.
+// The template's placeholder User/Login/Profile schemas were removed in P1.
 
 // ---------------------------------------------------------------------------
 // API responses  (generic wrapper used for type-safe fetch helpers)
@@ -56,11 +32,6 @@ export function ApiErrorSchema() {
     code: z.number().int().optional(),
   })
 }
-
-// Usage:
-//   const res = await fetch("/api/users/123");
-//   const json = await res.json();
-//   const user = ApiResponseSchema(UserSchema).parse(json).data;
 
 // ---------------------------------------------------------------------------
 // Query / search params

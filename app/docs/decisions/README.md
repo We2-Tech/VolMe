@@ -10,6 +10,6 @@ A log of choices made in this project that a future session â€” human or agent â
 
 ## Index
 
-| #   | Title | Status |
-| --- | ----- | ------ |
-|     |       |        |
+| #                                              | Title                                                          | Status   |
+| ---------------------------------------------- | -------------------------------------------------------------- | -------- |
+| [0001](0001-rewrite-volme-on-this-template.md) | Rewrite VolMe on this template, with no backward compatibility | Accepted |
