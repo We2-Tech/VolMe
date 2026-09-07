@@ -19,6 +19,10 @@ export const green = {
 
 // CSS-variable theme with automatic light/dark color schemes.
 // Dark mode follows the OS preference via InitColorSchemeScript in the layout.
+//
+// Deliberately no `components` block: v2 starts on stock MUI components and adds
+// overrides only once a real screen proves one is needed.
+// See docs/decisions/0003-no-component-styleoverrides-yet.md.
 const theme = createTheme({
   cssVariables: {
     colorSchemeSelector: 'class',
@@ -40,46 +44,10 @@ const theme = createTheme({
       },
     },
   },
-  shape: {
-    borderRadius: 8,
-  },
   typography: {
     // var(--font-roboto) is set by next/font in layout.tsx; fallbacks kick in
     // if the variable hasn't resolved yet or the font fails to load.
     fontFamily: 'var(--font-roboto), Roboto, Helvetica, Arial, sans-serif',
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: 999,
-        },
-      },
-    },
-    MuiButtonGroup: {
-      styleOverrides: {
-        root: {
-          borderRadius: 999,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 12,
-          },
-        },
-      },
-    },
   },
 })
 
