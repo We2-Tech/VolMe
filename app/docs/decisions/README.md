@@ -13,3 +13,4 @@ A log of choices made in this project that a future session â€” human or agent â
 | #                                              | Title                                                          | Status   |
 | ---------------------------------------------- | -------------------------------------------------------------- | -------- |
 | [0001](0001-rewrite-volme-on-this-template.md) | Rewrite VolMe on this template, with no backward compatibility | Accepted |
+| [0002](0002-cloudflare-r2-for-file-storage.md) | Store uploads on Cloudflare R2, not AWS S3                     | Accepted |

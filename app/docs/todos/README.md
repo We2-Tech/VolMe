@@ -9,7 +9,6 @@ Work that was intentionally deferred, recorded with enough context that whoever 
 
 ## Index
 
-| #                                                   | Title                                                           | Area            |
-| --------------------------------------------------- | --------------------------------------------------------------- | --------------- |
-| [0001](0001-incomplete-de-and-zh-translations.md)   | Fill the gaps in the German and Chinese message files           | `messages/`     |
-| [0002](0002-v1-production-environment-inventory.md) | Complete the v1 production environment inventory before cutover | deployment, DNS |
+| #                                                 | Title                                                 | Area        |
+| ------------------------------------------------- | ----------------------------------------------------- | ----------- |
+| [0001](0001-incomplete-de-and-zh-translations.md) | Fill the gaps in the German and Chinese message files | `messages/` |
