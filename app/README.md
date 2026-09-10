@@ -67,6 +67,10 @@ npm run dev
 │   │   ├── EventCard.tsx    # 列表里的一张活动卡
 │   │   ├── EventFilters.tsx # 列表筛选（客户端岛，只改 URL）
 │   │   ├── ApplyPanel.tsx   # 详情页报名（客户端岛）
+│   │   ├── EventForm.tsx    # 发布 / 编辑活动，含重复设置
+│   │   ├── ApplicationsQueue.tsx # 组织者审核队列
+│   │   ├── OrganizationForm.tsx  # 建 / 改组织
+│   │   ├── MembersPanel.tsx # 成员与邮件邀请
 │   │   ├── nav.tsx          # LinkButton / LinkCardArea 等，见文件顶部注释
 │   │   └── LocaleSwitcher.tsx
 │   ├── auth.ts              # Auth.js 配置（adapter + providers，仅服务端）
