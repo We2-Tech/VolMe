@@ -281,3 +281,13 @@ async function getApplicantContact(userId: string) {
     name: string
   } | null>()
 }
+
+/** The signed-in user's application to one event, or null. Used by the detail page
+ *  to decide what the apply island shows. */
+export async function myApplicationFor(eventId: string) {
+  const { currentUser } = await import('../authz')
+  const user = await currentUser()
+  if (!user) return null
+  await connectDB()
+  return ApplicationModel.findOne({ event: eventId, applicant: user.id }).lean()
+}

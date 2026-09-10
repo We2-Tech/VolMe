@@ -2,10 +2,38 @@
   "nav": {
     "appTitle": "VolMe"
   },
-  "notFound": {
-    "title": "页面不存在",
-    "description": "你要找的页面不存在，或者已经被移动了。",
-    "backHome": "返回首页"
+  "common": {
+    "events": "活动",
+    "any": "全部",
+    "sort": "排序",
+    "sortSoonest": "最近开始",
+    "sortNewest": "最新发布",
+    "sortRating": "评价最高",
+    "resultCount": "{count, plural, =0 {没有活动} other {# 个活动}}",
+    "noEvents": "没有符合条件的活动，试试放宽筛选。",
+    "peopleNeeded": "{count, plural, other {需要 # 位志愿者}}",
+    "placesTaken": "{total} 个名额已录取 {taken} 人",
+    "remote": "线上",
+    "repeating": "重复活动",
+    "cancelled": "已取消",
+    "cancelledNotice": "组织者已取消这一场。",
+    "eventPast": "这个活动已经结束了。",
+    "eventFull": "名额已满。仍然可以报名 —— 组织者有时需要候补。",
+    "verified": "已认证组织",
+    "otherDates": "其他场次",
+    "noReviews": "还没有评价。",
+    "apply": "报名",
+    "withdraw": "撤回报名",
+    "motivation": "你为什么想参加？",
+    "yourApplication": "你的报名：",
+    "statusDRAFT": "草稿",
+    "statusPENDING": "待审核",
+    "statusACCEPTED": "已录取",
+    "statusDECLINED": "未通过",
+    "statusWITHDRAWN": "已撤回",
+    "errorTitle": "出了点问题",
+    "errorBody": "页面没能加载，请重试。",
+    "retry": "重试"
   },
   "auth": {
     "signInTitle": "登录 VolMe",
@@ -21,6 +49,11 @@
     "signIn": "登录",
     "signOut": "退出登录"
   },
+  "notFound": {
+    "title": "页面不存在",
+    "description": "你要找的页面不存在，或者已经被移动了。",
+    "backHome": "返回首页"
+  },
   "PersistLogin": {
     "noAccess": "对不起，你没有权限访问该页面",
     "notLoggedIn": "请登录来访问页面",
@@ -35,7 +68,15 @@
     "myProfile": "我的档案",
     "myEvents": "我的活动",
     "logOut": "注销",
-    "noMessages": "没有消息"
+    "noMessages": "没有消息",
+    "home": "首页",
+    "about": "关于",
+    "product": "产品",
+    "application": "我的报名",
+    "contacts": "联系我们",
+    "features": "功能",
+    "testimonials": "用户评价",
+    "pricing": "价格"
   },
   "credentials": {
     "login": {
@@ -135,43 +176,6 @@
     "accept": "Accepted Applications",
     "pending": "Applications to be reviewed",
     "decline": "Declined Applications"
-  },
-  "pricing": {
-    "title": "我们的定价",
-    "description": "查看我们的订阅计划并挑选合适您需求的版本",
-    "perevent": "每个活动",
-    "permonth": "每月",
-    "peryear": "每年",
-    "sale": "促销活动持续到",
-    "monthly": "选择月付",
-    "yearly": "选择年付",
-    "choose": "选择购买计划",
-    "details": "订单详情",
-    "benefits": "可获取内容",
-    "price": "价格",
-    "confirm": "确认",
-    "onOrderApproveOk": "Your payment is successful!",
-    "onOrderApproveNo": "Sorry, something went wrong!",
-    "onSubscriptionApprove": "You have successfully subscribed to ",
-    "item1_title": "免费用户",
-    "item1_description1-1": "每个活动最多5个志愿者",
-    "item1_description1-2": "每月可以发布一个活动",
-    "item1_description1-3": "VolMe提供邮箱支持",
-    "item2_title": "基础订阅计划",
-    "item1_description2-1": "活动没有志愿者人数上限",
-    "item1_description2-2": "每月可以发布5个计划",
-    "item1_description2-3": "创建活动时可以自定义问题",
-    "item1_description2-4": "使用VolMe手机端扫描参与者二维码来签到用户",
-    "item1_description2-5": "VolMe提供优先邮件支持",
-    "item3_title": "豪华订阅计划",
-    "item1_description3-1": "活动没有志愿者人数上限",
-    "item1_description3-2": "没有活动发布次数上限",
-    "item1_description3-3": "创建活动时可以自定义问题",
-    "item1_description3-4": "创建活动时可以指定申请者上传PDF文件，并使用VolMe平台安全在线浏览",
-    "item1_description3-5": "自定义并导出Excel申请者列表",
-    "item1_description3-6": "使用VolMe手机端扫描参与者二维码来签到用户",
-    "item1_description3-7": "VolMe提供优先邮件支持",
-    "item4_title": "即用即走计划"
   },
   "applicationPage": {
     "applyAs": "Apply as",
@@ -346,17 +350,14 @@
     "v": "志愿者",
     "o": "活动组织者",
     "subTitle": "看看志愿者和志愿活动组织者在VolMe平台能干什么",
-    "title": "齐心协力，我们让志愿活动变得成功"
-  },
-  "testimonials": {
-    "t1O": "Buddy program, 学生",
-    "t1T": "我在慕尼黑大学申请了Buddy program，发现这个平台非常棒，非常用户友好且直观，易于应用。我很喜欢详细的活动描述以及与其他志愿者联系的能力。",
-    "t3O": "志愿者, 学生",
-    "t3T": "寻找令人兴奋的活动来担任志愿者从未如此简单！您的平台提供了各种各样的机会，每个机会都有详细的描述和简单的注册流程。知道我的贡献受到重视并且与与我的兴趣和技能完美契合的活动相匹配，这让我很有力量。\n",
-    "title": "听听我们用户的声音",
-    "subTitle1": "看看我们的用户是如何评价我们的产品的",
-    "subTitle2": "了解我们在效率、耐用性和满意度方面的表现出色。",
-    "subTitle3": "加入我们来获取创新高效并且可靠的支持"
+    "title": "齐心协力，我们让志愿活动变得成功",
+    "c": "企业",
+    "bCTitle1": "组织企业志愿活动",
+    "bCDescription1": "为团队安排一次有意义的公益日。",
+    "bCTitle2": "展示企业社会责任",
+    "bCDescription2": "把员工的参与时长记录下来，用于 ESG 报告。",
+    "bCTitle3": "与本地组织连接",
+    "bCDescription3": "直接对接身边真正需要人手的机构。"
   },
   "contacts": {
     "send": "给我们发消息",

@@ -62,7 +62,12 @@ npm run dev
 │   │   ├── layout.tsx       # 根布局（MUI ThemeProvider + CssBaseline）
 │   │   ├── not-found.tsx    # 根级 404 fallback（无效 locale 路径）
 │   │   └── globals.css
-│   ├── components/          # 客户端组件
+│   ├── components/          # 共享组件
+│   │   ├── NavBar.tsx       # 顶栏（Server Component，直接读 session）
+│   │   ├── EventCard.tsx    # 列表里的一张活动卡
+│   │   ├── EventFilters.tsx # 列表筛选（客户端岛，只改 URL）
+│   │   ├── ApplyPanel.tsx   # 详情页报名（客户端岛）
+│   │   ├── nav.tsx          # LinkButton / LinkCardArea 等，见文件顶部注释
 │   │   └── LocaleSwitcher.tsx
 │   ├── auth.ts              # Auth.js 配置（adapter + providers，仅服务端）
 │   ├── auth.config.ts       # 可在 proxy 中运行的那半份配置（不碰数据库）

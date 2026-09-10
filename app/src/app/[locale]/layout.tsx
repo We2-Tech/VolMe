@@ -4,6 +4,7 @@ import { hasLocale } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { NextIntlClientProvider } from 'next-intl'
 import { routing } from '@/i18n/routing'
+import NavBar from '@/components/NavBar'
 
 export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params
@@ -29,5 +30,10 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
 
   const messages = await getMessages()
 
-  return <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+  return (
+    <NextIntlClientProvider messages={messages}>
+      <NavBar />
+      {children}
+    </NextIntlClientProvider>
+  )
 }

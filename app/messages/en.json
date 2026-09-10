@@ -2,10 +2,38 @@
   "nav": {
     "appTitle": "VolMe"
   },
-  "notFound": {
-    "title": "Page not found",
-    "description": "The page you're looking for doesn't exist or has been moved.",
-    "backHome": "Back to Home"
+  "common": {
+    "events": "Events",
+    "any": "Any",
+    "sort": "Sort",
+    "sortSoonest": "Soonest first",
+    "sortNewest": "Newest first",
+    "sortRating": "Best rated",
+    "resultCount": "{count, plural, =0 {no events} one {1 event} other {# events}}",
+    "noEvents": "No events match those filters yet. Try widening them.",
+    "peopleNeeded": "{count, plural, one {1 volunteer needed} other {# volunteers needed}}",
+    "placesTaken": "{taken} of {total} places filled",
+    "remote": "Remote",
+    "repeating": "Repeats",
+    "cancelled": "Cancelled",
+    "cancelledNotice": "This date has been cancelled by the organisers.",
+    "eventPast": "This event has already taken place.",
+    "eventFull": "All places are taken. You can still apply — organisers sometimes need a reserve.",
+    "verified": "Verified organisation",
+    "otherDates": "Other dates",
+    "noReviews": "No reviews yet.",
+    "apply": "Apply",
+    "withdraw": "Withdraw application",
+    "motivation": "Why do you want to help?",
+    "yourApplication": "Your application:",
+    "statusDRAFT": "Draft",
+    "statusPENDING": "Pending",
+    "statusACCEPTED": "Accepted",
+    "statusDECLINED": "Declined",
+    "statusWITHDRAWN": "Withdrawn",
+    "errorTitle": "Something went wrong",
+    "errorBody": "The page could not be loaded. Try again.",
+    "retry": "Try again"
   },
   "auth": {
     "signInTitle": "Sign in to VolMe",
@@ -20,6 +48,11 @@
     "error": "That sign-in link didn't work. Request a new one below.",
     "signIn": "Sign in",
     "signOut": "Sign out"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "backHome": "Back to Home"
   },
   "PersistLogin": {
     "noAccess": "You don't have access to this page!",
@@ -143,43 +176,6 @@
     "accept": "Accepted Applications",
     "pending": "Applications to be reviewed",
     "decline": "Declined Applications"
-  },
-  "pricing": {
-    "title": "Pricing",
-    "description": "Check out our subscription offers and start immediately.",
-    "perevent": "per event",
-    "permonth": "per month",
-    "peryear": "per year",
-    "sale": "on sale until",
-    "monthly": "Change to monthly payment",
-    "yearly": "Change to yearly payment",
-    "choose": "choose plan",
-    "details": "Order details",
-    "benefits": "Benefits",
-    "price": "price",
-    "confirm": "confirm",
-    "onOrderApproveOk": "Your payment is successful!",
-    "onOrderApproveNo": "Sorry, something went wrong!",
-    "onSubscriptionApprove": "You have successfully subscribed to ",
-    "item1_title": "Free Plan",
-    "item1_description1-1": "Maximum 5 volunteer per event",
-    "item1_description1-2": "1 event per month",
-    "item1_description1-3": "E-Mail support from VolMe",
-    "item2_title": "Basic Plan",
-    "item1_description2-1": "No maximum volunteer limitation",
-    "item1_description2-2": "5 event per month",
-    "item1_description2-3": "Question customization upon event creation",
-    "item1_description2-4": "QR-Code check-in using VolMe mobile website",
-    "item1_description2-5": "priority E-Mail support from VolMe",
-    "item3_title": "Premium Plan",
-    "item1_description3-1": "No maximum volunteer limitation",
-    "item1_description3-2": "No maximum event limitation",
-    "item1_description3-3": "Question customization upon event creation",
-    "item1_description3-4": "Having volunteer upload pdf document and browse them using VolMe application management tool",
-    "item1_description3-5": "Customizing and exporting Excel file of all applications",
-    "item1_description3-6": "QR-Code check-in using VolMe mobile website",
-    "item1_description3-7": "priority E-Mail support from VolMe",
-    "item4_title": "Pay As You Go Plan"
   },
   "applicationPage": {
     "applyAs": "Apply as",
@@ -362,16 +358,6 @@
     "c": "Companies",
     "subTitle": "See how VolME benefits both volunteers and event organisers.",
     "title": "Together, we make every event a success"
-  },
-  "testimonials": {
-    "t1O": "Buddy program, Student",
-    "t1T": "I applied dor the buddy program at the University Munich and found it very easy to use. The platform is user-friendly and intuitive, making it simple to apply. I appreciate the detailed event descriptions and the ability to connect with other volunteers.",
-    "t3O": "Volunteer, Student",
-    "t3T": "Finding exciting events to volunteer for has never been easier! Your platform curates a diverse range of opportunities, each with detailed descriptions and easy signup processes. It's empowering to know that my contributions are valued and matched with events that align perfectly with my interests and skills.",
-    "title": "What our clients say",
-    "subTitle1": "See what our customers love about our products.",
-    "subTitle2": "Discover how we excel in efficiency, durability, and satisfaction.",
-    "subTitle3": "Join us for quality, innovation, and reliable support."
   },
   "contacts": {
     "send": "Send us a message",

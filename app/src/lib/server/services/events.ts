@@ -175,3 +175,12 @@ async function recomputeRating(eventId: string) {
     },
   )
 }
+
+/** Reviews for one event, newest first, with the author's public identity. */
+export async function listReviews(eventId: string) {
+  await connectDB()
+  return ReviewModel.find({ event: eventId })
+    .populate('author', 'name image')
+    .sort({ createdAt: -1 })
+    .lean()
+}

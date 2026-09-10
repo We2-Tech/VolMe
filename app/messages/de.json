@@ -2,10 +2,38 @@
   "nav": {
     "appTitle": "VolMe"
   },
-  "notFound": {
-    "title": "Seite nicht gefunden",
-    "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
-    "backHome": "Zurück zur Startseite"
+  "common": {
+    "events": "Aktionen",
+    "any": "Alle",
+    "sort": "Sortierung",
+    "sortSoonest": "Nächste zuerst",
+    "sortNewest": "Neueste zuerst",
+    "sortRating": "Beste Bewertung",
+    "resultCount": "{count, plural, =0 {keine Aktionen} one {1 Aktion} other {# Aktionen}}",
+    "noEvents": "Noch keine passenden Aktionen. Erweitere die Filter.",
+    "peopleNeeded": "{count, plural, one {1 Helfer*in gesucht} other {# Helfer*innen gesucht}}",
+    "placesTaken": "{taken} von {total} Plätzen vergeben",
+    "remote": "Remote",
+    "repeating": "Wiederkehrend",
+    "cancelled": "Abgesagt",
+    "cancelledNotice": "Dieser Termin wurde von den Organisator*innen abgesagt.",
+    "eventPast": "Diese Aktion hat bereits stattgefunden.",
+    "eventFull": "Alle Plätze sind vergeben. Du kannst dich trotzdem bewerben — manchmal wird Ersatz gebraucht.",
+    "verified": "Verifizierte Organisation",
+    "otherDates": "Weitere Termine",
+    "noReviews": "Noch keine Bewertungen.",
+    "apply": "Bewerben",
+    "withdraw": "Bewerbung zurückziehen",
+    "motivation": "Warum möchtest du helfen?",
+    "yourApplication": "Deine Bewerbung:",
+    "statusDRAFT": "Entwurf",
+    "statusPENDING": "Offen",
+    "statusACCEPTED": "Angenommen",
+    "statusDECLINED": "Abgelehnt",
+    "statusWITHDRAWN": "Zurückgezogen",
+    "errorTitle": "Etwas ist schiefgelaufen",
+    "errorBody": "Die Seite konnte nicht geladen werden. Versuch es erneut.",
+    "retry": "Erneut versuchen"
   },
   "auth": {
     "signInTitle": "Bei VolMe anmelden",
@@ -20,6 +48,11 @@
     "error": "Dieser Anmeldelink hat nicht funktioniert. Fordere unten einen neuen an.",
     "signIn": "Anmelden",
     "signOut": "Abmelden"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "backHome": "Zurück zur Startseite"
   },
   "PersistLogin": {
     "noAccess": "Sie haben keinen Zugriff auf diese Seite!",
@@ -42,7 +75,8 @@
     "myProfile": "Mein Profil",
     "myEvents": "Meine Veranstaltungen",
     "logOut": "Abmelden",
-    "noMessages": "Keine Nachrichten"
+    "noMessages": "Keine Nachrichten",
+    "contact": "Kontakt"
   },
   "credentials": {
     "login": {
@@ -65,9 +99,6 @@
       "stepInfo1": "Wer sind Sie?",
       "stepInfo2": "Erzählen Sie uns mehr über sich!",
       "stepInfo3": "Bestätigen & Loslegen",
-      "stepsList1": "Wer sind Sie?",
-      "stepsList2": "Erzählen Sie uns mehr über sich!",
-      "stepsList3": "Bestätigen & Loslegen",
       "step1intro": "Wer sind Sie?",
       "step1Volunteer": "Freiwilliger",
       "step1Organizer": "Organisator",
@@ -145,24 +176,6 @@
     "accept": "Akzeptierte Bewerbungen",
     "pending": "Zu überprüfende Bewerbungen",
     "decline": "Abgelehnte Bewerbungen"
-  },
-  "pricing": {
-    "title": "Preise",
-    "description": "Schauen Sie sich unsere Abonnementangebote an und starten Sie sofort.",
-    "perevent": "pro Veranstaltung",
-    "permonth": "pro Monat",
-    "peryear": "pro Jahr",
-    "sale": "im Angebot bis",
-    "monthly": "Auf monatliche Zahlung umstellen",
-    "yearly": "Auf jährliche Zahlung umstellen",
-    "choose": "Plan wählen",
-    "details": "Bestelldetails",
-    "benefits": "Vorteile",
-    "price": "Preis",
-    "confirm": "Bestätigen",
-    "onOrderApproveOk": "Ihre Zahlung war erfolgreich!",
-    "onOrderApproveNo": "Entschuldigung, etwas ist schief gelaufen!",
-    "onSubscriptionApprove": "Sie haben erfolgreich abonniert"
   },
   "applicationPage": {
     "applyAs": "Bewerben als",
@@ -314,27 +327,40 @@
     "subTitle": "Erfahre, wie VolME Freiwilligen und Veranstaltern hilft.",
     "title": "Gemeinsam machen wir jede Veranstaltung zum Erfolg"
   },
-  "testimonials": {
-    "t1O": "Organisatorin, Senior Engineer",
-    "t1T": "Die Plattform ist intuitiv und effizient, erleichtert das Posten von Events und erreicht ein breiteres Publikum. Die Verwaltungstools sind benutzerfreundlich und robust.",
-    "t2O": "Organisator, Lead Product Designer",
-    "t2T": "Die Plattform revolutioniert den Kontakt zu Freiwilligen. Unsere Events können reichhaltig und multimedial dargestellt werden, um die richtigen Freiwilligen anzuziehen. Der Support ist hervorragend.",
-    "t3O": "Freiwilligerin, Student",
-    "t3T": "Events zu finden war noch nie so einfach! Die Plattform bietet vielfältige Möglichkeiten mit detaillierten Beschreibungen und einfachen Anmeldeprozessen.",
-    "t4O": "Senior Engineer",
-    "t4T": "Als Freiwilliger und Organisator schätze ich die Vielseitigkeit der Plattform. Sie bietet eine benutzerfreundliche Oberfläche und umfassende Event-Management-Tools.",
-    "title": "Kundenmeinungen",
-    "subTitle1": "Was Kunden an unseren Produkten lieben.",
-    "subTitle2": "Wie wir in Effizienz und Zufriedenheit glänzen.",
-    "subTitle3": "Qualität, Innovation und zuverlässige Unterstützung."
-  },
   "contacts": {
     "send": "Schicke uns eine Nachricht",
     "info": "Kontaktinformationen"
   },
-  "sideDrawer": {
-    "myProfile": "Mein Profil",
-    "myEvents": "Meine Veranstaltungen",
-    "logOut": "Abmelden"
+  "events": {
+    "search": "Suchen",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "location": "Ort",
+    "language": "Sprachen",
+    "category": "Kategorien",
+    "en": "Englisch",
+    "de": "Deutsch",
+    "it": "Italienisch",
+    "es": "Spanisch",
+    "fr": "Französisch",
+    "zh": "Chinesisch",
+    "CS": "Gemeinwesenarbeit",
+    "EL": "Bildung und Alphabetisierung",
+    "EC": "Umwelt und Naturschutz",
+    "HM": "Gesundheit und Medizin",
+    "AW": "Tierschutz",
+    "AC": "Kunst und Kultur",
+    "DR": "Katastrophenhilfe",
+    "YC": "Kinder und Jugendliche",
+    "SE": "Senior*innen",
+    "SR": "Sport und Freizeit",
+    "HR": "Menschenrechte",
+    "SJ": "Soziale Gerechtigkeit",
+    "HH": "Obdachlosigkeit und Wohnen",
+    "HF": "Hunger und Ernährung",
+    "MH": "Psychische Gesundheit",
+    "IV": "Internationales Engagement",
+    "CI": "Krisenintervention",
+    "OT": "Sonstiges"
   }
 }
