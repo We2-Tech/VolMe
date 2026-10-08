@@ -19,13 +19,7 @@ const { auth } = NextAuth(authConfig)
  * because the proxy cannot know which organization owns the event in the URL — see
  * docs/roles.md.
  */
-const PROTECTED_PREFIXES = [
-  '/profile',
-  '/my-events',
-  '/applications',
-  '/organizations/new',
-  '/events/new',
-]
+const PROTECTED_PREFIXES = ['/profile', '/my-events', '/organizations/new', '/events/new']
 
 function stripLocale(pathname: string): string {
   const segments = pathname.split('/')

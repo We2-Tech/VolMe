@@ -1,8 +1,8 @@
 import 'server-only'
 import { Types } from 'mongoose'
 import { connectDB } from '../db'
-import { EventModel, ReviewModel, ApplicationModel } from '../models'
-import { requireMembership, requireUser } from '../authz'
+import { EventModel, ReviewModel, ApplicationModel, OrganizationModel } from '../models'
+import { membershipsOf, requireMembership, requireUser } from '../authz'
 import { buildEventQuery, pageCount, EVENTS_PAGE_SIZE } from '@/lib/events-query'
 import {
   EventFormSchema,
@@ -183,4 +183,95 @@ export async function listReviews(eventId: string) {
     .populate('author', 'name image')
     .sort({ createdAt: -1 })
     .lean()
+}
+
+/** How many of an organisation's events the "My events" page lists. Past this, the
+ *  organiser is better served by the public list filtered to their organisation. */
+const MY_ORGANIZATION_EVENTS_LIMIT = 50
+
+/**
+ * The organiser half of "My events": every organisation the signed-in user belongs
+ * to, each with its events that have not ended yet — drafts included, because a
+ * draft is exactly what an organiser comes back to finish — and how many
+ * applications are waiting on each.
+ *
+ * Membership is read here, per request, not from the session (docs/roles.md).
+ */
+export async function listMyOrganizationsWithEvents() {
+  const user = await requireUser()
+  const memberships = await membershipsOf(user.id)
+  if (memberships.length === 0) return []
+
+  await connectDB()
+  const organizationIds = memberships.map((m) => new Types.ObjectId(m.organization))
+  type Row = {
+    _id: Types.ObjectId
+    organization: Types.ObjectId
+    title: string
+    startDate: Date
+    isDraft: boolean
+    isCancelled: boolean
+    peopleNeeded: number
+    series: Types.ObjectId | null
+  }
+  // One query per organisation, so a busy one cannot push a quiet one off the page.
+  const [organizations, ...perOrganization] = await Promise.all([
+    OrganizationModel.find({ _id: { $in: organizationIds } }, { name: 1, slug: 1 })
+      .sort({ name: 1 })
+      .lean<Array<{ _id: Types.ObjectId; name: string; slug: string }>>(),
+    ...organizationIds.map((organization) =>
+      EventModel.find(
+        { organization, endDate: { $gte: new Date() } },
+        {
+          organization: 1,
+          title: 1,
+          startDate: 1,
+          isDraft: 1,
+          isCancelled: 1,
+          peopleNeeded: 1,
+          series: 1,
+        },
+      )
+        .sort({ startDate: 1 })
+        .limit(MY_ORGANIZATION_EVENTS_LIMIT)
+        .lean<Row[]>(),
+    ),
+  ])
+  const events = perOrganization.flat()
+
+  const counts = await ApplicationModel.aggregate<{
+    _id: { event: Types.ObjectId; status: string }
+    n: number
+  }>([
+    {
+      $match: {
+        event: { $in: events.map((e) => e._id) },
+        status: { $in: ['PENDING', 'ACCEPTED'] },
+      },
+    },
+    { $group: { _id: { event: '$event', status: '$status' }, n: { $sum: 1 } } },
+  ])
+  const countOf = (eventId: Types.ObjectId, status: string) =>
+    counts.find((c) => c._id.status === status && c._id.event.equals(eventId))?.n ?? 0
+
+  const roleOf = new Map(memberships.map((m) => [m.organization, m.role]))
+  return organizations.map((organization) => ({
+    id: String(organization._id),
+    name: organization.name,
+    slug: organization.slug,
+    role: roleOf.get(String(organization._id))!,
+    events: events
+      .filter((e) => e.organization.equals(organization._id))
+      .map((e) => ({
+        id: String(e._id),
+        title: e.title,
+        startDate: e.startDate,
+        isDraft: e.isDraft,
+        isCancelled: e.isCancelled,
+        peopleNeeded: e.peopleNeeded,
+        series: e.series ? String(e.series) : null,
+        pending: countOf(e._id, 'PENDING'),
+        accepted: countOf(e._id, 'ACCEPTED'),
+      })),
+  }))
 }

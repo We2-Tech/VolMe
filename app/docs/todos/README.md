@@ -9,6 +9,10 @@ Work that was intentionally deferred, recorded with enough context that whoever 
 
 ## Index
 
-| #                                                 | Title                                     | Area                     |
-| ------------------------------------------------- | ----------------------------------------- | ------------------------ |
-| [0002](0002-monetisation-when-cold-start-ends.md) | Revisit monetisation once cold start ends | product / business model |
+| #                                                    | Title                                                           | Area                                  |
+| ---------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------- |
+| [0002](0002-monetisation-when-cold-start-ends.md)    | Revisit monetisation once cold start ends                       | product / business model              |
+| [0003](0003-messaging-beyond-application-threads.md) | Decide whether messaging needs to go beyond application threads | product — applications, notifications |
+| [0004](0004-holding-a-future-occurrence.md)          | Give volunteers a way to hold a future occurrence               | events, applications, notifications   |
+| [0005](0005-rich-text-event-descriptions.md)         | Decide whether event descriptions need rich text                | event form, event detail              |
+| [0006](0006-profile-photo-and-full-address.md)       | Profile photo upload, and the rest of the address               | profile                               |

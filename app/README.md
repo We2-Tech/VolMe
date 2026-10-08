@@ -71,6 +71,9 @@ npm run dev
 │   │   ├── ApplicationsQueue.tsx # 组织者审核队列
 │   │   ├── OrganizationForm.tsx  # 建 / 改组织
 │   │   ├── MembersPanel.tsx # 成员与邮件邀请
+│   │   ├── MyApplicationCard.tsx # 「我的活动」里的一份申请 + 留言线程
+│   │   ├── ApplicationsCalendar.tsx # 「我的活动」月历，标出有安排的日子
+│   │   ├── ProfileForm.tsx  # 个人资料（志愿者与组织者共用）
 │   │   ├── nav.tsx          # LinkButton / LinkCardArea 等，见文件顶部注释
 │   │   └── LocaleSwitcher.tsx
 │   ├── auth.ts              # Auth.js 配置（adapter + providers，仅服务端）
@@ -83,6 +86,7 @@ npm run dev
 │   │   ├── recurrence.ts    # 重复规则展开（按 IANA 时区算，纯函数）
 │   │   ├── events-query.ts  # 列表筛选参数 → MongoDB 查询（纯函数）
 │   │   ├── applications-state.ts # 申请状态机（纯函数）
+│   │   ├── my-events.ts     # 「我的活动」分组、日历、系列折叠（纯函数）
 │   │   ├── schemas/         # Zod：领域模型的唯一事实来源，TS 类型由 z.infer 派生
 │   │   │   ├── common.ts    # ObjectId · Address · GeoPoint · Pagination · ApiResponse
 │   │   │   ├── enums.ts     # 角色 · 活动分类 · 语言 · 申请状态

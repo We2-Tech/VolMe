@@ -20,8 +20,21 @@ export async function getMyProfile() {
 export async function updateMyProfile(input: unknown) {
   const user = await requireUser()
   const data = UserProfileFormSchema.parse(input)
+
+  // A field the form left empty arrives absent, and Mongoose drops absent keys from
+  // an update — so clearing your birthday or gender would silently keep the old
+  // value. Unset every optional profile field the payload does not carry.
+  const cleared = Object.keys(UserProfileFormSchema.shape).filter(
+    (key) => data[key as keyof typeof data] === undefined,
+  )
   await connectDB()
-  await UserModel.updateOne({ _id: user.id }, data)
+  await UserModel.updateOne(
+    { _id: user.id },
+    {
+      $set: data,
+      ...(cleared.length ? { $unset: Object.fromEntries(cleared.map((key) => [key, 1])) } : {}),
+    },
+  )
 }
 
 /** What a public profile shows. Contact details stay private. */

@@ -121,7 +121,7 @@ export async function submitApplicationAction(eventId: string) {
   return run(async () => {
     await applications.submitApplication(eventId)
     revalidatePath(`/events/${eventId}`)
-    revalidatePath('/applications')
+    revalidatePath('/my-events')
   })
 }
 
@@ -129,14 +129,14 @@ export async function withdrawApplicationAction(eventId: string) {
   return run(async () => {
     await applications.withdrawApplication(eventId)
     revalidatePath(`/events/${eventId}`)
-    revalidatePath('/applications')
+    revalidatePath('/my-events')
   })
 }
 
 export async function decideApplicationAction(applicationId: string, input: unknown) {
   return run(async () => {
     await applications.decideApplication(applicationId, input)
-    revalidatePath('/applications')
+    revalidatePath('/my-events')
   })
 }
 
@@ -147,7 +147,7 @@ export async function markAttendanceAction(applicationId: string, attended: bool
 export async function postMessageAction(applicationId: string, body: string) {
   return run(async () => {
     await applications.postMessage(applicationId, body)
-    revalidatePath('/applications')
+    revalidatePath('/my-events')
   })
 }
 
