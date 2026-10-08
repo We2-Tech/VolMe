@@ -16,3 +16,8 @@ frontend/node_modules
 frontend/package-lock.json
 frontend/build
 /frontend/build/
+
+# Dependencies are installed inside app/, never at the repository root.
+/node_modules
+/package.json
+/package-lock.json
